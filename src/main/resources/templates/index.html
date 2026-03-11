@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek Coder</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:       #f5f4f0;
+            --surface:  #ffffff;
+            --border:   #e0ded8;
+            --ink:      #1a1a1a;
+            --ink2:     #888880;
+            --accent:   #2563eb;
+            --accent-l: #eff4ff;
+        }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'IBM Plex Sans', sans-serif;
+            overflow: hidden;
+        }
+
+        @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.35} }
+        @keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:.35} 30%{transform:translateY(-5px);opacity:1} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        .app {
+            display: grid;
+            grid-template-rows: 56px 1fr auto;
+            height: 100vh;
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand { display: flex; align-items: center; gap: 8px; }
+
+        .brand-mark {
+            width: 28px; height: 28px; border-radius: 6px;
+            background: var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+
+        .brand-name {
+            font-size: 0.95rem; font-weight: 600;
+            color: var(--ink); letter-spacing: -0.01em;
+        }
+
+        .brand-tag {
+            font-size: 0.65rem; color: var(--ink2);
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--border); padding: 2px 7px; border-radius: 4px;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 10px; }
+
+        .status {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 0.7rem; color: var(--ink2);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        .btn-clear {
+            background: none; border: 1px solid var(--border);
+            color: var(--ink2); padding: 4px 10px; border-radius: 5px;
+            font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-clear:hover { border-color: #ef4444; color: #ef4444; }
+
+        .chat-area {
+            overflow-y: auto;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .welcome {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100%; gap: 12px; text-align: center;
+        }
+
+        .welcome-icon { font-size: 2.4rem; }
+
+        .welcome h2 {
+            font-size: 1.2rem; font-weight: 600; color: var(--ink);
+        }
+
+        .welcome p {
+            font-size: 0.8rem; color: var(--ink2); max-width: 320px;
+            line-height: 1.6; font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .chips {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            justify-content: center; margin-top: 4px;
+        }
+
+        .chip {
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 6px 12px; border-radius: 20px; font-size: 0.75rem;
+            cursor: pointer; transition: all 0.15s; color: var(--ink);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+        .message {
+            display: flex; gap: 10px;
+            animation: fadeUp 0.25s ease both;
+        }
+        .message.user { flex-direction: row-reverse; }
+
+        .avatar {
+            width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; margin-top: 1px;
+        }
+        .message.user .avatar {
+            background: var(--accent-l);
+            border: 1px solid #bfdbfe;
+        }
+        .message.assistant .avatar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+
+        .bubble-wrap { max-width: 76%; }
+        .message.user .bubble-wrap {
+            display: flex; flex-direction: column; align-items: flex-end;
+        }
+
+        .bubble {
+            border-radius: 10px; padding: 11px 14px;
+            font-size: 0.875rem; line-height: 1.65;
+        }
+
+        .message.user .bubble {
+            background: var(--accent); color: #fff;
+            border-top-right-radius: 2px;
+        }
+
+        .message.assistant .bubble {
+            background: var(--surface); color: var(--ink);
+            border: 1px solid var(--border);
+            border-top-left-radius: 2px;
+        }
+
+        .meta {
+            font-size: 0.62rem; color: var(--ink2);
+            font-family: 'IBM Plex Mono', monospace;
+            margin-top: 4px; padding: 0 2px;
+        }
+
+        .bubble pre {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px; padding: 12px;
+            margin: 8px 0; overflow-x: auto;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.8rem; line-height: 1.6; color: var(--ink);
+        }
+
+        .bubble code:not(pre code) {
+            background: var(--bg); border: 1px solid var(--border);
+            padding: 1px 5px; border-radius: 4px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.82em; color: var(--accent);
+        }
+
+        .bubble p { margin-bottom: 6px; }
+        .bubble p:last-child { margin-bottom: 0; }
+        .bubble strong { font-weight: 600; }
+        .bubble ol, .bubble ul { padding-left: 18px; margin: 6px 0; }
+        .bubble li { margin-bottom: 3px; }
+
+        .typing {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; border-top-left-radius: 2px;
+            padding: 12px 14px;
+        }
+        .typing-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--ink2); animation: bounce 1.2s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        .input-area {
+            padding: 12px 0 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .input-wrapper {
+            display: flex; align-items: flex-end; gap: 8px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 8px 8px 14px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+        }
+
+        #userInput {
+            flex: 1; background: transparent; border: none; outline: none;
+            color: var(--ink); font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.875rem; resize: none;
+            min-height: 22px; max-height: 130px; line-height: 1.5;
+        }
+        #userInput::placeholder { color: var(--ink2); }
+
+        .btn-send {
+            width: 32px; height: 32px; border-radius: 7px;
+            background: var(--accent); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; color: #fff; font-size: 14px;
+            transition: opacity 0.15s;
+        }
+        .btn-send:hover   { opacity: 0.85; }
+        .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .input-hint {
+            font-size: 0.62rem; color: var(--ink2);
+            font-family: 'IBM Plex Mono', monospace;
+            text-align: center; margin-top: 7px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <header>
+        <div class="brand">
+            <div class="brand-mark">🤖</div>
+            <span class="brand-name">DeepSeek Coder</span>
+            <span class="brand-tag">ollama · local</span>
+        </div>
+        <div class="header-right">
+            <div class="status">
+                <div class="dot"></div>
+                running
+            </div>
+            <button class="btn-clear" onclick="clearChat()">⌫ clear</button>
+        </div>
+    </header>
+
+    <div class="chat-area" id="chatArea">
+        <div class="welcome" id="welcome"
+             th:if="${messages == null or messages.isEmpty()}">
+            <div class="welcome-icon">💻</div>
+            <h2>What can I code for you?</h2>
+            <p>Ask anything — algorithms, debugging, architecture, Spring Boot, and more.</p>
+            <div class="chips">
+                <span class="chip" onclick="sendSuggestion(this)">REST API in Spring Boot</span>
+                <span class="chip" onclick="sendSuggestion(this)">async/await in JavaScript</span>
+                <span class="chip" onclick="sendSuggestion(this)">Binary search in Java</span>
+                <span class="chip" onclick="sendSuggestion(this)">SQL query optimization</span>
+            </div>
+        </div>
+
+        <th:block th:each="msg : ${messages}">
+            <div th:class="'message ' + ${msg.role}">
+                <div class="avatar"
+                     th:text="${msg.role == 'user' ? '👤' : '🤖'}"></div>
+                <div class="bubble-wrap">
+                    <div class="bubble">
+                        <span class="raw-content" style="display:none"
+                              th:text="${msg.content}"></span>
+                    </div>
+                    <div class="meta" th:text="${msg.timestamp}"></div>
+                </div>
+            </div>
+        </th:block>
+    </div>
+
+    <div class="input-area">
+        <div class="input-wrapper">
+            <textarea
+                id="userInput"
+                rows="1"
+                placeholder="Ask DeepSeek Coder anything…"
+                onkeydown="handleKey(event)"
+                oninput="autoResize(this)"></textarea>
+            <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
+        </div>
+        <div class="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+    </div>
+
+</div>
+
+<script>
+    function renderMarkdown(raw) {
+        let text = raw
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+            return `<pre><code>${code.trim()}</code></pre>`;
+        });
+
+        text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.+?)\*/g,     '<em>$1</em>');
+        text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
+        text = text.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+
+        const parts = text.split(/\n{2,}/);
+        text = parts.map(p => {
+            p = p.trim();
+            if (!p) return '';
+            if (p.startsWith('<pre') || p.startsWith('<ol') ||
+                p.startsWith('<ul') || p.startsWith('<li')) return p;
+            return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+        }).join('');
+
+        return text;
+    }
+
+    document.querySelectorAll('.raw-content').forEach(span => {
+        const bubble = span.closest('.bubble');
+        bubble.innerHTML = renderMarkdown(span.textContent);
+    });
+
+    function appendMessage(role, content, time) {
+        document.getElementById('welcome')?.remove();
+        const chatArea = document.getElementById('chatArea');
+        const wrap = document.createElement('div');
+        wrap.className = `message ${role}`;
+        const inner = (role === 'assistant')
+            ? renderMarkdown(content)
+            : `<p>${escHtml(content)}</p>`;
+        wrap.innerHTML = `
+            <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
+            <div class="bubble-wrap">
+                <div class="bubble">${inner}</div>
+                <div class="meta">${time}</div>
+            </div>`;
+        chatArea.appendChild(wrap);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function escHtml(t) {
+        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function showTyping() {
+        const chatArea = document.getElementById('chatArea');
+        const el = document.createElement('div');
+        el.className = 'message assistant';
+        el.id = 'typing';
+        el.innerHTML = `
+            <div class="avatar">🤖</div>
+            <div class="typing">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>`;
+        chatArea.appendChild(el);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function removeTyping() {
+        document.getElementById('typing')?.remove();
+    }
+
+    async function sendMessage() {
+        const input   = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const message = input.value.trim();
+        if (!message || sendBtn.disabled) return;
+
+        sendBtn.disabled = true;
+        input.value = '';
+        input.style.height = 'auto';
+
+        const time = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+        appendMessage('user', message, time);
+        showTyping();
+
+        try {
+            const res  = await fetch('/chat', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ message })
+            });
+            const data = await res.json();
+            removeTyping();
+            if (data.error) {
+                appendMessage('assistant', `⚠️ ${data.error}`, time);
+            } else {
+                appendMessage('assistant', data.response, data.time || time);
+            }
+        } catch {
+            removeTyping();
+            appendMessage('assistant',
+                '⚠️ Could not reach Ollama. Make sure it is running on port 11434.', time);
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 130) + 'px';
+    }
+
+    function sendSuggestion(el) {
+        document.getElementById('userInput').value = el.textContent.trim();
+        sendMessage();
+    }
+
+    async function clearChat() {
+        await fetch('/clear', { method: 'POST' });
+        document.getElementById('chatArea').innerHTML = `
+            <div class="welcome" id="welcome">
+                <div class="welcome-icon">💻</div>
+                <h2>What can I code for you?</h2>
+                <p>Ask anything — algorithms, debugging, architecture, Spring Boot, and more.</p>
+                <div class="chips">
+                    <span class="chip" onclick="sendSuggestion(this)">REST API in Spring Boot</span>
+                    <span class="chip" onclick="sendSuggestion(this)">async/await in JavaScript</span>
+                    <span class="chip" onclick="sendSuggestion(this)">Binary search in Java</span>
+                    <span class="chip" onclick="sendSuggestion(this)">SQL query optimization</span>
+                </div>
+            </div>`;
+    }
+
+    const ca = document.getElementById('chatArea');
+    ca.scrollTop = ca.scrollHeight;
+    document.getElementById('userInput').focus();
+</script>
+</body>
+</html>
+```
+
