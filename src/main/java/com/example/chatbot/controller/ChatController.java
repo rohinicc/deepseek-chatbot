@@ -26,26 +26,26 @@ public class ChatController {
         this.chatService = chatService;
     }
 
-    // ── Redirect root to welcome ──────────────────
+    
     @GetMapping("/")
     public String root() {
         return "redirect:/welcome";
     }
 
-    // ── Welcome page ──────────────────────────────
+    
     @GetMapping("/welcome")
     public String welcome() {
         return "welcome";
     }
 
-    // ── Chat page ─────────────────────────────────
+    
     @GetMapping("/chat-page")
     public String index(Model model, HttpSession session) {
         model.addAttribute("messages", getHistory(session));
         return "index";
     }
 
-    // ── Send message ──────────────────────────────
+    
     @PostMapping("/chat")
     @ResponseBody
     public ResponseEntity<Map<String, String>> chat(
@@ -74,7 +74,7 @@ public class ChatController {
         return ResponseEntity.ok(Map.of("response", reply, "time", now));
     }
 
-    // ── Clear chat ────────────────────────────────
+    
     @PostMapping("/clear")
     @ResponseBody
     public ResponseEntity<Map<String, String>> clear(HttpSession session) {
@@ -82,7 +82,7 @@ public class ChatController {
         return ResponseEntity.ok(Map.of("status", "cleared"));
     }
 
-    // ── Helper ────────────────────────────────────
+    
     @SuppressWarnings("unchecked")
     private List<ChatMessage> getHistory(HttpSession session) {
         Object stored = session.getAttribute(SESSION_KEY);
