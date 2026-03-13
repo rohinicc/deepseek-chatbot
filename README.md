@@ -10,14 +10,16 @@ Ask coding questions, get code snippets, debug errors — all running privately 
 ### 🏠 Welcome Page
 > Landing page when you open the app — click **Start Chatting** to begin.
 
-![Welcome Page](https://raw.githubusercontent.com/rohinicc/deepseek-chatbot/main/screenshots/welcome.png)
+<img width="2878" height="1627" alt="Screenshot 2026-03-11 233142" src="https://github.com/user-attachments/assets/f852cbae-0f4c-48ba-b143-84e8ea4649ed" />
+
 
 ---
 
 ### 💬 Chat Page
 > Main chat interface — type your coding question and get an instant AI response.
 
-![Chat Page](https://raw.githubusercontent.com/rohinicc/deepseek-chatbot/main/screenshots/chat.png)
+<img width="2879" height="1547" alt="Screenshot 2026-03-12 075150" src="https://github.com/user-attachments/assets/fec735f0-de0a-4235-accc-f88f1651af13" />
+
 
 ---
 
