@@ -10,14 +10,14 @@ Ask coding questions, get code snippets, debug errors — all running privately 
 ### 🏠 Welcome Page
 > Landing page when you open the app — click **Start Chatting** to begin.
 
-![Welcome Page](screenshots/welcome.png)
+![Welcome Page](https://raw.githubusercontent.com/rohinicc/deepseek-chatbot/main/screenshots/welcome.png)
 
 ---
 
 ### 💬 Chat Page
 > Main chat interface — type your coding question and get an instant AI response.
 
-![Chat Page](screenshots/chat.png)
+![Chat Page](https://raw.githubusercontent.com/rohinicc/deepseek-chatbot/main/screenshots/chat.png)
 
 ---
 
@@ -65,24 +65,9 @@ src/
 │   │   └── model/
 │   │       └── ChatMessage.java         ← Message model (role, content, time)
 │   └── resources/
-│       ├── application.properties       ← App config
 │       └── templates/
 │           ├── welcome.html             ← Landing page
 │           └── index.html               ← Chat UI
-```
-
----
-
-## ⚙️ Configuration
-
-`src/main/resources/application.properties`
-
-```properties
-spring.application.name=ai-coder-chatbot
-spring.ai.ollama.base-url=http://localhost:11434
-spring.ai.ollama.chat.options.temperature=0.7
-server.port=8080
-server.address=0.0.0.0
 ```
 
 ---
@@ -108,8 +93,8 @@ ollama pull <your-model-name>
 ### Step 3 — Clone the Project
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone https://github.com/rohinicc/deepseek-chatbot.git
+cd deepseek-chatbot
 ```
 
 ### Step 4 — Run the App
