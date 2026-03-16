@@ -12,7 +12,6 @@ Ask coding questions, get code snippets, debug errors — all running privately 
 
 <img width="2878" height="1627" alt="Screenshot 2026-03-11 233142" src="https://github.com/user-attachments/assets/f852cbae-0f4c-48ba-b143-84e8ea4649ed" />
 
-
 ---
 
 ### 💬 Chat Page
@@ -20,24 +19,17 @@ Ask coding questions, get code snippets, debug errors — all running privately 
 
 <img width="2879" height="1547" alt="Screenshot 2026-03-12 075150" src="https://github.com/user-attachments/assets/fec735f0-de0a-4235-accc-f88f1651af13" />
 
-
 ---
 
-## 🧠 How It Works
+## ✨ Features
 
-```
-You type a question
-        ↓
-Spring Boot receives it (ChatController)
-        ↓
-ChatService sends it to Ollama
-        ↓
-Ollama runs the AI model locally on your machine
-        ↓
-Response comes back to your browser
-        ↓
-Markdown is rendered (code blocks, bold, lists)
-```
+- 💬 Real-time chat with AI
+- ⌨️ Typing indicator while AI is thinking
+- 📝 Markdown rendering (code blocks, bold, lists)
+- 🕘 Session-based conversation history
+- 🧹 Clear chat button
+- 💡 Suggestion chips to get started quickly
+- 🔒 100% local — no data sent to the internet
 
 ---
 
@@ -53,62 +45,115 @@ Markdown is rendered (code blocks, bold, lists)
 
 ---
 
-## 📁 Project Structure
+## ✅ Requirements
 
-```
-src/
-├── main/
-│   ├── java/com/example/chatbot/
-│   │   ├── ChatbotApplication.java      ← Entry point
-│   │   ├── controller/
-│   │   │   └── ChatController.java      ← Handles routes & requests
-│   │   ├── service/
-│   │   │   └── ChatService.java         ← Talks to Ollama via Spring AI
-│   │   └── model/
-│   │       └── ChatMessage.java         ← Message model (role, content, time)
-│   └── resources/
-│       └── templates/
-│           ├── welcome.html             ← Landing page
-│           └── index.html               ← Chat UI
+Make sure you have the following installed before running the project:
+
+| Requirement | Version | Download |
+|---|---|---|
+| Java JDK | 17 or above | [Download](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) |
+| Maven | 3.6 or above | [Download](https://maven.apache.org/download.cgi) |
+| Ollama | Latest | [Download](https://ollama.com) |
+| Git | Latest | [Download](https://git-scm.com) |
+
+---
+
+## 🚀 How to Run the Project
+
+### 1. Install Ollama
+
+Download and install Ollama from [https://ollama.com](https://ollama.com)
+
+Verify installation:
+
+```bash
+ollama --version
 ```
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Java 17+
-- Maven
-- [Ollama](https://ollama.com) installed and running
-
-### Step 1 — Install Ollama
-
-Download from [https://ollama.com](https://ollama.com) and install it.
-
-### Step 2 — Pull a Model
+### 2. Pull an AI Model
 
 ```bash
-ollama pull <your-model-name>
+ollama pull deepseek-coder
 ```
 
-### Step 3 — Clone the Project
+> ⏳ Wait until you see `success`
+
+Verify the model is available:
+
+```bash
+ollama list
+```
+
+---
+
+### 3. Clone the Project
 
 ```bash
 git clone https://github.com/rohinicc/deepseek-chatbot.git
 cd deepseek-chatbot
 ```
 
-### Step 4 — Run the App
+---
+
+### 4. Build the Project
+
+```bash
+mvn clean package -DskipTests
+```
+
+Wait for:
+
+```
+BUILD SUCCESS
+```
+
+---
+
+### 5. Run the App
 
 ```bash
 mvn spring-boot:run
 ```
 
-### Step 5 — Open in Browser
+If the server starts successfully, you should see:
+
+```
+Started ChatbotApplication in X seconds
+```
+
+---
+
+### 6. Open in Browser
 
 ```
 http://localhost:8080
+```
+
+You will see the **Welcome Page** → click **Start Chatting** → start asking! 🎉
+
+---
+
+## 🔄 Application Flow
+
+```
+User Request
+      │
+      ▼
+Spring Boot Application (Port 8080)
+      │
+      ▼
+ChatService → Spring AI
+      │
+      ▼
+Ollama API (Port 11434)
+      │
+      ▼
+AI Model (Local)
+      │
+      ▼
+Response rendered in Browser
 ```
 
 ---
@@ -125,15 +170,22 @@ http://localhost:8080
 
 ---
 
-## ✨ Features
+## ⚠️ Troubleshooting
 
-- 💬 Real-time chat with AI
-- ⌨️ Typing indicator while AI is thinking
-- 📝 Markdown rendering (code blocks, bold, lists)
-- 🕘 Session-based conversation history
-- 🧹 Clear chat button
-- 💡 Suggestion chips to get started quickly
-- 🔒 100% local — no data sent to the internet
+| Problem | Fix |
+|---|---|
+| `Site can't be reached` | Make sure app is running on port 8080 |
+| `Could not reach Ollama` | Run `ollama serve` to start Ollama |
+| `BUILD FAILURE` | Verify Java 17 is installed — `java -version` |
+| Model not responding | Run `ollama list` to verify model is downloaded |
+
+---
+
+## 📝 Notes
+
+- Ollama must be installed and running for AI responses to work.
+- Make sure port `8080` is open if accessing from another machine.
+- Keep Ollama running in the background while using the app.
 
 ---
 
@@ -145,5 +197,5 @@ Special thanks to **Akshay Kumar S** for the invaluable mentorship, constant sup
 
 ## 👩‍💻 Developer
 
-**Rohini C** — Java Developer & DevOps Engineer  
+**Rohini C**  
 📎 [GitHub](https://github.com/rohinicc) · [LinkedIn](https://linkedin.com/in/rohini-c-na16/) · [Portfolio](https://rohinijuji.onrender.com)
