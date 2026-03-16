@@ -188,11 +188,6 @@ Response rendered in Browser
 - Keep Ollama running in the background while using the app.
 
 ---
-
-## 🙏 Acknowledgement
-
-Special thanks to **Akshay Kumar S** for the invaluable mentorship, constant support, and guidance throughout this project. 🌟
-
 ---
 
 ## 👩‍💻 Developer
