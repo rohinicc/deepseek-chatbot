@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "app.chat.ttl-hours",
+  "type": "java.lang.String",
+  "description": "A description for 'app.chat.ttl-hours'"
+}]}

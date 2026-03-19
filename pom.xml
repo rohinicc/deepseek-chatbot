@@ -26,11 +26,15 @@
 		<tag/>
 		<url/>
 	</scm>
+
 	<properties>
 		<java.version>17</java.version>
 		<spring-ai.version>1.1.2</spring-ai.version>
 	</properties>
+
 	<dependencies>
+
+		<!-- ── YOUR ORIGINAL DEPENDENCIES (unchanged) ──────────────── -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -41,10 +45,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-ollama</artifactId>
@@ -56,12 +62,63 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- ── NEWLY ADDED — fixes all SecurityConfig.java errors ───── -->
+
+		<!-- 1. Spring Security — fixes ALL "cannot be resolved" errors
+		        in SecurityConfig: EnableWebSecurity, PasswordEncoder,
+		        BCryptPasswordEncoder, DaoAuthenticationProvider,
+		        SecurityFilterChain, HttpSecurity                         -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<!-- 2. Thymeleaf + Spring Security integration
+		        Needed for CSRF token in login/signup forms: th:action    -->
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+
+		<!-- 3. Spring Data JPA + Hibernate
+		        Needed for @Entity, @Repository, JpaRepository, MySQL ORM -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!-- 4. MySQL Connector
+		        JDBC driver that connects to your ai_coder_db database     -->
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- 5. Spring Data Redis (Lettuce)
+		        Needed for RedisTemplate, chat history storage             -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
+		<!-- 6. Jackson Databind
+		        JSON serialisation for storing ChatMessage objects in Redis -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
 	</dependencies>
+
+	<!-- ── YOUR ORIGINAL dependencyManagement (unchanged) ──────────── -->
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -74,6 +131,7 @@
 		</dependencies>
 	</dependencyManagement>
 
+	<!-- ── YOUR ORIGINAL build (unchanged) ─────────────────────────── -->
 	<build>
 		<plugins>
 			<plugin>

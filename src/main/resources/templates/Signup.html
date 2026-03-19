@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account — AI Coder</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:          #f5f4f0;
+            --bg2:         #edecea;
+            --surface:     #ffffff;
+            --surface2:    #f0eeeb;
+            --border:      #dddbd4;
+            --border-hi:   #c8c6be;
+            --ink:         #1a1a1a;
+            --ink2:        #6b6b63;
+            --ink3:        #9e9d96;
+            --accent:      #2563eb;
+            --accent-l:    #eff4ff;
+            --accent-b:    #bfdbfe;
+            --success:     #16a34a;
+            --danger:      #dc2626;
+            --glow:        0 0 0 3px rgba(37,99,235,0.10);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-family: 'IBM Plex Mono', monospace; -webkit-font-smoothing: antialiased; }
+        body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.45; pointer-events: none; z-index: 0; }
+        body::after  { content: ''; position: fixed; left: 0; right: 0; top: 0; height: 80px; background: linear-gradient(transparent, rgba(37,99,235,0.02), transparent); animation: scanline 9s linear infinite; pointer-events: none; z-index: 0; }
+
+        @keyframes fadeUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.35} }
+        @keyframes blink   { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes scanline{ 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+
+        /* ── Topbar ── */
+        .topbar { position: fixed; top: 0; left: 0; right: 0; height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .brand-mark { width: 28px; height: 28px; border-radius: 6px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+        .brand-name  { font-family: 'IBM Plex Mono', monospace; font-size: 0.88rem; font-weight: 600; color: var(--ink); letter-spacing: 0.02em; }
+        .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--ink3); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+
+        /* ── Layout ── */
+        .layout { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; padding-top: 52px; position: relative; z-index: 1; }
+
+        /* ── Left panel ── */
+        .left {
+            background: var(--bg2); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 36px 40px;
+            position: sticky; top: 52px; height: calc(100vh - 52px); overflow: hidden;
+        }
+        .left::before { content: ''; position: absolute; bottom: -100px; right: -100px; width: 380px; height: 380px; border-radius: 50%; background: radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 65%); pointer-events: none; }
+
+        .l-tag { display: flex; align-items: center; gap: 8px; font-size: 0.6rem; color: var(--ink3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 28px; }
+        .l-tag::before { content: '❯'; color: var(--accent); }
+
+        .l-heading { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.4rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.03em; color: var(--ink); margin-bottom: 10px; }
+        .l-heading span { color: var(--accent); }
+        .l-sub { font-size: 0.72rem; color: var(--ink2); line-height: 1.75; max-width: 268px; margin-bottom: 32px; }
+
+        /* Steps */
+        .steps { display: flex; flex-direction: column; flex: 1; }
+        .step { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; position: relative; }
+        .step:not(:last-child)::after { content: ''; position: absolute; left: 12px; top: 42px; bottom: 0; width: 1px; background: var(--border); }
+
+        .step-num {
+            width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; font-weight: 600;
+            background: var(--surface); border: 1px solid var(--border); color: var(--ink3);
+        }
+        .step-num.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+
+        .step-body h4 { font-size: 0.78rem; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+        .step-body p  { font-size: 0.68rem; color: var(--ink2); line-height: 1.55; }
+
+        .l-foot { font-size: 0.6rem; color: var(--ink3); display: flex; align-items: center; gap: 6px; }
+        .l-dot  { width: 5px; height: 5px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+
+        /* ── Right form ── */
+        .right { background: var(--surface); display: flex; align-items: flex-start; justify-content: center; padding: 36px 48px; border-left: 1px solid var(--border); overflow-y: auto; }
+        .form-wrap { width: 100%; max-width: 360px; animation: fadeUp 0.4s ease both; }
+
+        .f-prompt { display: flex; align-items: center; gap: 6px; font-size: 0.62rem; color: var(--accent); letter-spacing: 0.08em; margin-bottom: 10px; }
+        .f-prompt::before { content: '❯'; }
+        .f-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; color: var(--ink); margin-bottom: 8px; }
+        .f-title em { font-style: normal; color: var(--accent); }
+        .f-sub { font-size: 0.72rem; color: var(--ink2); line-height: 1.65; margin-bottom: 24px; }
+
+        /* Server error — no box */
+        .s-err { font-size: 0.68rem; color: var(--danger); margin-bottom: 14px; display: flex; align-items: center; gap: 5px; }
+        .s-err::before { content: '✕'; opacity: 0.6; font-size: 0.7rem; }
+
+        .f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .fg { margin-bottom: 14px; }
+        .fl { display: block; font-size: 0.6rem; color: var(--ink3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+
+        /* Shared input shell */
+        .i-shell { display: flex; align-items: center; background: var(--bg); border: 1.5px solid var(--border); border-radius: 7px; transition: border-color 0.15s, box-shadow 0.15s; }
+        .i-shell:focus-within { border-color: var(--accent); box-shadow: var(--glow); background: var(--surface); }
+        .i-shell.err  { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(220,38,38,0.08); }
+        .i-shell.good { border-color: var(--success); }
+
+        .i-pre { padding: 0 9px; font-size: 0.65rem; color: var(--ink3); border-right: 1.5px solid var(--border); white-space: nowrap; }
+        input[type="text"], input[type="password"] { flex: 1; background: transparent; border: none; outline: none; padding: 10px 11px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--ink); }
+        input::placeholder { color: var(--ink3); }
+        .eye-btn { padding: 0 9px; background: none; border: none; cursor: pointer; color: var(--ink3); font-size: 12px; transition: color 0.15s; }
+        .eye-btn:hover { color: var(--accent); }
+
+        /* Inline errors — no box */
+        .ferr { font-size: 0.6rem; color: var(--danger); margin-top: 4px; min-height: 13px; opacity: 0; transform: translateY(-3px); transition: opacity 0.18s, transform 0.18s; }
+        .ferr.show { opacity: 1; transform: none; }
+        .fok  { font-size: 0.6rem; color: var(--success); margin-top: 4px; min-height: 13px; opacity: 0; transition: opacity 0.18s; }
+        .fok.show { opacity: 1; }
+
+        /* Password strength */
+        .pw-bars { display: flex; gap: 3px; margin-top: 6px; align-items: center; }
+        .bar { height: 3px; flex: 1; border-radius: 2px; background: var(--border); transition: background 0.25s; }
+        .bar.w{background:var(--danger)} .bar.f{background:#f59e0b} .bar.g{background:#eab308} .bar.s{background:var(--success)}
+        .bar-lbl { font-size: 0.58rem; color: var(--ink3); min-width: 38px; text-align: right; }
+
+        /* Terms */
+        .terms { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 16px; }
+        .terms input { accent-color: var(--accent); width: 12px; height: 12px; flex-shrink: 0; margin-top: 2px; }
+        .terms span { font-size: 0.63rem; color: var(--ink2); line-height: 1.6; }
+        .terms a { color: var(--accent); text-decoration: none; }
+        .terms a:hover { text-decoration: underline; }
+
+        .btn-submit { width: 100%; padding: 11px 18px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; cursor: pointer; letter-spacing: 0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s; box-shadow: 0 2px 10px rgba(37,99,235,0.22); }
+        .btn-submit:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
+        .btn-arr { transition: transform 0.2s; }
+        .btn-submit:hover .btn-arr { transform: translateX(4px); }
+
+        /* Flow indicator */
+        .flow-hint { display: flex; align-items: center; gap: 5px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 0.6rem; color: var(--ink3); flex-wrap: wrap; }
+        .flow-step { padding: 2px 7px; border-radius: 4px; background: var(--bg2); border: 1px solid var(--border); color: var(--ink2); }
+        .flow-step.current { color: var(--accent); border-color: var(--accent-b); background: var(--accent-l); }
+        .flow-arrow { color: var(--ink3); }
+
+        .sep { display: flex; align-items: center; gap: 8px; margin: 16px 0; }
+        .sep::before, .sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .sep span { font-size: 0.58rem; color: var(--ink3); }
+        .bot-link { text-align: center; font-size: 0.72rem; color: var(--ink2); }
+        .bot-link a { color: var(--accent); text-decoration: none; font-weight: 500; }
+        .bot-link a:hover { text-decoration: underline; }
+
+        @media(max-width:680px){
+            .layout { grid-template-columns: 1fr; }
+            .left   { display: none; }
+            .right  { padding: 28px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <a href="/welcome" class="brand">
+            <div class="brand-mark">🤖</div>
+            <span class="brand-name">ai-coder</span>
+        </a>
+        <div class="topbar-right">
+            <span class="status-dot"></span>
+            ready
+        </div>
+    </div>
+
+    <div class="layout">
+
+        <!-- LEFT -->
+        <div class="left">
+            <div class="l-tag">getting started</div>
+            <div class="l-heading">Join <span>AI Coder</span><br>today.</div>
+            <p class="l-sub">Set up your account in seconds. No email verification needed.</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num active">01</div>
+                    <div class="step-body"><h4>Create your account</h4><p>Choose a username and set a strong password.</p></div>
+                </div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <div class="step-body"><h4>Start coding with AI</h4><p>Ask questions, get code, debug — instantly.</p></div>
+                </div>
+            </div>
+
+            <div class="l-foot"><span class="l-dot"></span>AI Coder · ready</div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right">
+            <div class="form-wrap">
+
+                <div class="f-prompt">auth.register</div>
+                <h1 class="f-title">Create <em>account</em></h1>
+                <p class="f-sub">Join AI Coder and start building today.</p>
+
+                <div class="s-err" th:if="${error}" th:text="${error}"></div>
+
+                <form th:action="@{/signup}" method="post" id="signupForm" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div class="f2">
+                        <div>
+                            <label class="fl" for="firstName">first name</label>
+                            <div class="i-shell" id="sh-fn">
+                                <input type="text" id="firstName" name="firstName" placeholder="Ada" th:value="${firstName}" autocomplete="given-name" />
+                            </div>
+                            <div class="ferr" id="e-fn">Required</div>
+                        </div>
+                        <div>
+                            <label class="fl" for="lastName">last name</label>
+                            <div class="i-shell" id="sh-ln">
+                                <input type="text" id="lastName" name="lastName" placeholder="Lovelace" th:value="${lastName}" autocomplete="family-name" />
+                            </div>
+                            <div class="ferr" id="e-ln">Required</div>
+                        </div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="username">username</label>
+                        <div class="i-shell" id="sh-u">
+                            <span class="i-pre">@</span>
+                            <input type="text" id="username" name="username" placeholder="ada_codes" th:value="${username}" autocomplete="username" />
+                        </div>
+                        <div class="ferr" id="e-u">Letters, numbers, underscores · min 3 chars</div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="password">password</label>
+                        <div class="i-shell" id="sh-pw">
+                            <span class="i-pre">••</span>
+                            <input type="password" id="password" name="password" placeholder="min 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)" />
+                            <button type="button" class="eye-btn" onclick="togglePw('password',this)" tabindex="-1">👁</button>
+                        </div>
+                        <div class="pw-bars">
+                            <div class="bar" id="b1"></div><div class="bar" id="b2"></div>
+                            <div class="bar" id="b3"></div><div class="bar" id="b4"></div>
+                            <span class="bar-lbl" id="blbl"></span>
+                        </div>
+                        <div class="ferr" id="e-pw">Min 8 characters required</div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="confirmPassword">confirm password</label>
+                        <div class="i-shell" id="sh-cp">
+                            <span class="i-pre">••</span>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="repeat password" autocomplete="new-password" oninput="checkMatch()" />
+                            <button type="button" class="eye-btn" onclick="togglePw('confirmPassword',this)" tabindex="-1">👁</button>
+                        </div>
+                        <div class="ferr" id="e-cp">Passwords do not match</div>
+                        <div class="fok"  id="ok-cp">✓ passwords match</div>
+                    </div>
+
+                    <div class="terms">
+                        <input type="checkbox" id="terms" name="terms" />
+                        <span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a></span>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        ./create-account <span class="btn-arr">→</span>
+                    </button>
+                </form>
+
+                <div class="flow-hint">
+                    <span class="flow-step">welcome</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-step current">signup</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-step">login</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-step">chat</span>
+                </div>
+
+                <div class="sep"><span>or</span></div>
+                <div class="bot-link">Already have an account? <a href="/login">./sign-in →</a></div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function togglePw(id, btn) {
+            const el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; btn.textContent = el.type === 'password' ? '👁' : '🙈';
+        }
+        function setErr(sh, er, v) { document.getElementById(sh).classList.toggle('err', v); document.getElementById(er).classList.toggle('show', v); }
+        function checkStrength(val) {
+            const cls=['w','f','g','s'], names=['weak','fair','good','strong'], clrs=['#dc2626','#f59e0b','#eab308','#16a34a'];
+            let s=0; if(val.length>=8)s++; if(/[A-Z]/.test(val)&&/[a-z]/.test(val))s++; if(/\d/.test(val))s++; if(/[^A-Za-z0-9]/.test(val))s++;
+            ['b1','b2','b3','b4'].forEach((id,i)=>{ const b=document.getElementById(id); b.className='bar'; if(i<s)b.classList.add(cls[s-1]); });
+            const lbl=document.getElementById('blbl'); lbl.textContent=val.length?names[s-1]:''; lbl.style.color=val.length?clrs[s-1]:'var(--ink3)';
+        }
+        function checkMatch() {
+            const pw=document.getElementById('password').value, cpw=document.getElementById('confirmPassword').value, sh=document.getElementById('sh-cp');
+            if(!cpw){sh.classList.remove('err','good');document.getElementById('e-cp').classList.remove('show');document.getElementById('ok-cp').classList.remove('show');return;}
+            const m=cpw===pw; sh.classList.toggle('err',!m); sh.classList.toggle('good',m);
+            document.getElementById('e-cp').classList.toggle('show',!m); document.getElementById('ok-cp').classList.toggle('show',m);
+        }
+        document.getElementById('username').addEventListener('input', function() {
+            const ok=/^[a-z0-9_]{3,}$/i.test(this.value);
+            document.getElementById('sh-u').classList.toggle('err', this.value&&!ok);
+            document.getElementById('e-u').classList.toggle('show', this.value.length>0&&!ok);
+        });
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            let ok=true;
+            [['firstName','sh-fn','e-fn'],['lastName','sh-ln','e-ln'],['username','sh-u','e-u'],['password','sh-pw','e-pw']].forEach(([id,sh,er])=>{
+                if(!document.getElementById(id).value.trim()){setErr(sh,er,true);ok=false;}
+            });
+            if(document.getElementById('password').value!==document.getElementById('confirmPassword').value){setErr('sh-cp','e-cp',true);ok=false;}
+            if(!document.getElementById('terms').checked)ok=false;
+            if(!ok)e.preventDefault();
+        });
+    </script>
+</body>
+</html>

@@ -17,7 +17,7 @@ public class ChatService {
     private final ChatClient chatClient;
 
     private static final String SYSTEM_PROMPT = """
-            You are DeepSeek Coder, an expert AI coding assistant.
+            You are an expert AI coding assistant.
             - Provide clear, well-commented code examples.
             - Use proper markdown fenced code blocks with the language identifier.
             - Keep explanations concise and precise.
