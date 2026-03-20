@@ -31,3 +31,18 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# ── Secrets — NEVER commit these ──────────────────────────────
+.env
+src/main/resources/application.properties
+
+# ── Docker ────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

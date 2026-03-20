@@ -1,0 +1,10 @@
+# ── Database ───────────────────────────────────────────────
+MYSQL_ROOT_PASSWORD=your_strong_password_here
+MYSQL_DATABASE=ai_coder_db
+
+# ── Ollama ─────────────────────────────────────────────────
+# Local (on EC2 host — not inside Docker)
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+# ── App ────────────────────────────────────────────────────
+APP_PORT=8080

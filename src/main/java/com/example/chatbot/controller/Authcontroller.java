@@ -19,9 +19,9 @@ public class Authcontroller {
     // ── GET /login ────────────────────────────────────────────
     @GetMapping("/login")
     public String loginPage(
-            @RequestParam(required = false) String error,
-            @RequestParam(required = false) String logout,
-            @RequestParam(required = false) String registered,
+            @RequestParam(name = "error",      required = false) String error,
+            @RequestParam(name = "logout",     required = false) String logout,
+            @RequestParam(name = "registered", required = false) String registered,
             Model model) {
 
         if (error      != null) model.addAttribute("error",   "Invalid username or password.");
@@ -39,11 +39,11 @@ public class Authcontroller {
     // ── POST /signup ──────────────────────────────────────────
     @PostMapping("/signup")
     public String signupSubmit(
-            @RequestParam String firstName,
-            @RequestParam String lastName,
-            @RequestParam String username,
-            @RequestParam String password,
-            @RequestParam String confirmPassword,
+            @RequestParam(name = "firstName")        String firstName,
+            @RequestParam(name = "lastName")         String lastName,
+            @RequestParam(name = "username")         String username,
+            @RequestParam(name = "password")         String password,
+            @RequestParam(name = "confirmPassword")  String confirmPassword,
             Model model) {
 
         if (!username.matches("^[a-zA-Z0-9_]{3,50}$")) {
