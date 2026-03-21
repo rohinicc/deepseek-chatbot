@@ -10,12 +10,6 @@ Ask coding questions, get code snippets, debug errors — all running privately 
 ### 🏠 Welcome
 <img width="2878" height="1627" alt="Welcome Page" src="https://github.com/user-attachments/assets/f852cbae-0f4c-48ba-b143-84e8ea4649ed" />
 
-### 🔐 Sign Up
-<img width="2879" height="1547" alt="Signup Page" src="https://github.com/user-attachments/assets/fec735f0-de0a-4235-accc-f88f1651af13" />
-
-### 🔑 Login
-<img width="2879" height="1547" alt="Login Page" src="https://github.com/user-attachments/assets/fec735f0-de0a-4235-accc-f88f1651af13" />
-
 ### 💬 Chat
 <img width="2879" height="1547" alt="Chat Page" src="https://github.com/user-attachments/assets/fec735f0-de0a-4235-accc-f88f1651af13" />
 
