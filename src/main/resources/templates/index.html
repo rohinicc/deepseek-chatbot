@@ -8,7 +8,6 @@
     <style>
         :root {
             --bg:        #f5f4f0;
-            --bg2:       #edecea;
             --surface:   #ffffff;
             --surface2:  #f0eeeb;
             --border:    #dddbd4;
@@ -21,6 +20,13 @@
             --success:   #16a34a;
             --danger:    #dc2626;
             --glow:      0 0 0 3px rgba(37,99,235,0.10);
+            --c-bg:      #1e1e2e;
+            --c-bg2:     #181825;
+            --c-border:  #313244;
+            --c-text:    #cdd6f4;
+            --c-sub:     #6c7086;
+            --c-fn:      #89b4fa;
+            --c-str:     #a6e3a1;
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -34,19 +40,19 @@
                               linear-gradient(90deg, var(--border) 1px, transparent 1px);
             background-size: 40px 40px; opacity: 0.45; pointer-events: none; z-index: 0;
         }
-
-        @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.35} }
-        @keyframes bounce  { 0%,60%,100%{transform:translateY(0);opacity:.35} 30%{transform:translateY(-5px);opacity:1} }
-        @keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes floatY  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.35} }
+        @keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:.35} 30%{transform:translateY(-5px);opacity:1} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
 
         .app {
             display: grid; grid-template-rows: 52px 1fr auto;
-            height: 100vh; max-width: 860px;
+            height: 100vh; max-width: 900px;
             margin: 0 auto; padding: 0 16px;
             position: relative; z-index: 1;
         }
 
+        /* ── Header ── */
         header {
             display: flex; align-items: center; justify-content: space-between;
             border-bottom: 1px solid var(--border);
@@ -69,26 +75,26 @@
         .h-btn:hover       { border-color: var(--accent); color: var(--accent); }
         .h-btn.clear:hover { border-color: var(--danger);  color: var(--danger); }
 
+        /* ── Chat area ── */
         .chat-area {
             overflow-y: auto; padding: 24px 0;
             display: flex; flex-direction: column; gap: 18px;
             scrollbar-width: thin; scrollbar-color: var(--border) transparent;
         }
 
+        /* ── Welcome ── */
         .welcome {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            height: 100%; gap: 14px; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100%; gap: 14px; text-align: center;
             animation: fadeUp 0.35s ease both;
         }
         .welcome-icon {
             width: 60px; height: 60px; border-radius: 14px; background: var(--accent);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 26px; margin-bottom: 4px;
-            box-shadow: 0 4px 16px rgba(37,99,235,0.22);
+            display: flex; align-items: center; justify-content: center; font-size: 26px;
+            margin-bottom: 4px; box-shadow: 0 4px 16px rgba(37,99,235,0.22);
             animation: floatY 3s ease-in-out infinite;
         }
-        .welcome h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--ink); }
+        .welcome h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.15rem; font-weight: 600; }
         .welcome p  { font-size: 0.72rem; color: var(--ink2); max-width: 340px; line-height: 1.7; }
         .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 4px; }
         .chip {
@@ -98,6 +104,7 @@
         }
         .chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
 
+        /* ── Messages ── */
         .message { display: flex; gap: 10px; animation: fadeUp 0.2s ease both; }
         .message.user { flex-direction: row-reverse; }
         .avatar {
@@ -108,24 +115,19 @@
         .message.user .avatar      { background: var(--accent-l); border: 1px solid var(--accent-b); }
         .message.assistant .avatar { background: var(--surface2); border: 1px solid var(--border); }
 
-        /* ── OVERFLOW FIX — key change ── */
-        .bubble-wrap {
-            max-width: 76%;
-            min-width: 0;        /* allows flex child to shrink below content size */
-        }
+        .bubble-wrap { max-width: 82%; min-width: 0; }
         .message.user .bubble-wrap { display: flex; flex-direction: column; align-items: flex-end; }
 
         .bubble {
             border-radius: 8px; padding: 10px 14px;
             font-size: 0.82rem; line-height: 1.7;
-            word-break: break-word;   /* breaks long words/URLs that would overflow */
-            overflow-wrap: anywhere;  /* wraps at any character if necessary */
-            min-width: 0;
+            word-break: break-word; overflow-wrap: anywhere; min-width: 0;
         }
         .message.user .bubble {
             background: var(--accent); color: #fff;
             border-top-right-radius: 2px;
             box-shadow: 0 2px 8px rgba(37,99,235,0.18);
+            font-family: 'IBM Plex Mono', monospace;
         }
         .message.assistant .bubble {
             background: var(--surface); color: var(--ink);
@@ -135,29 +137,70 @@
         }
         .meta { font-size: 0.58rem; color: var(--ink3); margin-top: 4px; padding: 0 2px; }
 
-        /* Code blocks scroll horizontally — never push bubble wider */
-        .bubble pre {
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 6px; padding: 12px; margin: 8px 0;
-            overflow-x: auto;          /* horizontal scroll for long code lines */
-            max-width: 100%;           /* never wider than bubble */
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.78rem; line-height: 1.65; color: var(--ink);
-            white-space: pre;          /* preserve code formatting */
+        /* ── History date separator ── */
+        .date-sep {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.62rem; color: var(--ink3); margin: 4px 0;
         }
+        .date-sep::before, .date-sep::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        /* ── Code block — dark theme with line numbers ── */
+        .code-wrapper {
+            margin: 10px 0; border-radius: 8px;
+            overflow: hidden; border: 1px solid var(--c-border); width: 100%;
+        }
+        .code-header {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--c-bg2); padding: 7px 14px;
+            font-size: 0.68rem; color: var(--c-sub);
+            font-family: 'IBM Plex Mono', monospace;
+            border-bottom: 1px solid var(--c-border);
+        }
+        .code-lang { color: var(--c-fn); font-weight: 500; }
+        .copy-btn {
+            background: var(--c-border); border: none; color: var(--c-text);
+            padding: 3px 10px; border-radius: 4px; font-size: 0.65rem;
+            cursor: pointer; font-family: 'IBM Plex Mono', monospace; transition: all 0.15s;
+        }
+        .copy-btn:hover  { background: #45475a; }
+        .copy-btn.copied { background: #1e3a2f; color: var(--c-str); }
+
+        .code-body { display: flex; background: var(--c-bg); overflow-x: auto; width: 100%; }
+        .line-nums {
+            padding: 14px 10px 14px 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem; line-height: 1.7; color: var(--c-sub);
+            text-align: right; user-select: none; flex-shrink: 0;
+            border-right: 1px solid var(--c-border); min-width: 36px;
+        }
+        .bubble pre {
+            background: transparent; padding: 14px 16px; margin: 0; flex: 1;
+            font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;
+            line-height: 1.7; color: var(--c-text);
+            white-space: pre; word-break: normal; overflow-wrap: normal; tab-size: 4;
+        }
+        .bubble pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+        /* inline code */
         .bubble code:not(pre code) {
             background: var(--accent-l); border: 1px solid var(--accent-b);
             padding: 1px 5px; border-radius: 4px;
             font-family: 'IBM Plex Mono', monospace;
             font-size: 0.82em; color: var(--accent);
-            word-break: break-word;
         }
-        .bubble p { margin-bottom: 6px; }
-        .bubble p:last-child { margin-bottom: 0; }
-        .bubble strong { font-weight: 600; }
-        .bubble ol, .bubble ul { padding-left: 18px; margin: 6px 0; }
-        .bubble li { margin-bottom: 3px; }
 
+        /* text formatting */
+        .bubble p          { margin-bottom: 8px; }
+        .bubble p:last-child { margin-bottom: 0; }
+        .bubble strong     { font-weight: 600; }
+        .bubble h3         { font-size: 0.9rem; font-weight: 600; margin: 12px 0 5px; }
+        .bubble ol, .bubble ul { padding-left: 20px; margin: 6px 0; }
+        .bubble li         { margin-bottom: 4px; line-height: 1.6; }
+        .bubble hr         { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+
+        /* ── Typing indicator ── */
         .typing {
             display: inline-flex; align-items: center; gap: 4px;
             background: var(--surface); border: 1px solid var(--border);
@@ -168,6 +211,7 @@
         .typing-dot:nth-child(2){animation-delay:.2s}
         .typing-dot:nth-child(3){animation-delay:.4s}
 
+        /* ── Input area ── */
         .input-area { padding: 12px 0 18px; border-top: 1px solid var(--border); }
         .input-wrapper {
             display: flex; align-items: flex-end; gap: 8px;
@@ -219,6 +263,8 @@
     </header>
 
     <div class="chat-area" id="chatArea">
+
+        <!-- ── Welcome screen (shown when no history) ── -->
         <div class="welcome" id="welcome" th:if="${messages == null or messages.isEmpty()}">
             <div class="welcome-icon">💻</div>
             <h2 th:text="'Hello, ' + ${username} + '! What can I code for you?'">What can I code for you?</h2>
@@ -230,6 +276,13 @@
                 <span class="chip" onclick="sendSuggestion(this)">SQL query optimisation</span>
             </div>
         </div>
+
+        <!-- ── Chat history header (shown when history exists) ── -->
+        <div th:if="${messages != null and !messages.isEmpty()}" class="date-sep">
+            chat history
+        </div>
+
+        <!-- ── Render saved messages from Redis ── -->
         <th:block th:each="msg : ${messages}">
             <div th:class="'message ' + ${msg.role}">
                 <div class="avatar" th:text="${msg.role == 'user' ? '👤' : '🤖'}"></div>
@@ -241,6 +294,12 @@
                 </div>
             </div>
         </th:block>
+
+        <!-- ── Separator between history and new messages ── -->
+        <div th:if="${messages != null and !messages.isEmpty()}" class="date-sep" id="newMsgSep">
+            new messages
+        </div>
+
     </div>
 
     <div class="input-area">
@@ -257,57 +316,161 @@
 </div>
 
 <script>
+    /* ── Build code block with line numbers + copy button ── */
+    function buildCodeBlock(lang, rawCode) {
+        /* fix model outputting multiple statements on one line */
+        let code = rawCode
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            .trim();
+
+        const label = lang ? lang.toLowerCase() : 'code';
+        const lines  = code.split('\n');
+        const lineNums = lines.map((_,i) => i+1).join('\n');
+
+        const escaped = code
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;');
+
+        return `<div class="code-wrapper">
+            <div class="code-header">
+                <span class="code-lang">${label}</span>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="code-body">
+                <div class="line-nums">${lineNums}</div>
+                <pre><code>${escaped}</code></pre>
+            </div>
+        </div>`;
+    }
+
+    /* ── Render markdown to HTML ── */
     function renderMarkdown(raw) {
-        let t = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,l,c) => `<pre><code>${c.trim()}</code></pre>`);
+        if (!raw) return '';
+        let t = raw;
+
+        /* extract and replace code blocks first before any escaping */
+        const codeBlocks = [];
+        t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+            const idx = codeBlocks.length;
+            codeBlocks.push(buildCodeBlock(lang, code));
+            return `%%CODE_BLOCK_${idx}%%`;
+        });
+
+        /* now escape HTML in non-code text */
+        t = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+        /* inline formatting */
         t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
         t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         t = t.replace(/\*(.+?)\*/g,     '<em>$1</em>');
+        t = t.replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>');
+        t = t.replace(/^[-–—]{3,}$/gm,   '<hr>');
         t = t.replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
-        t = t.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+        t = t.replace(/^[-•*]\s+(.+)$/gm,   '<li>$1</li>');
+
+        /* paragraphs */
         t = t.split(/\n{2,}/).map(p => {
-            p = p.trim(); if(!p) return '';
-            if(p.startsWith('<pre')||p.startsWith('<li')) return p;
+            p = p.trim();
+            if (!p) return '';
+            if (/^%%CODE_BLOCK/.test(p))   return p;
+            if (/^<(h3|hr|li)/.test(p))    return p;
             return `<p>${p.replace(/\n/g,'<br>')}</p>`;
         }).join('');
+
+        /* restore code blocks */
+        codeBlocks.forEach((block, i) => {
+            t = t.replace(`%%CODE_BLOCK_${i}%%`, block);
+        });
+
         return t;
     }
+
+    /* ── Copy code to clipboard ── */
+    function copyCode(btn) {
+        if (!btn) return;
+        const wrapper = btn.closest('.code-wrapper');
+        if (!wrapper) return;
+        const codeEl = wrapper.querySelector('code');
+        if (!codeEl) return;
+        navigator.clipboard.writeText(codeEl.innerText).then(() => {
+            btn.textContent = 'copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                if (btn) { btn.textContent = 'copy'; btn.classList.remove('copied'); }
+            }, 2000);
+        }).catch(() => {
+            btn.textContent = 'error';
+            setTimeout(() => { if (btn) btn.textContent = 'copy'; }, 2000);
+        });
+    }
+
+    /* ── Render history messages on page load ── */
     document.querySelectorAll('.raw-content').forEach(s => {
-        s.closest('.bubble').innerHTML = renderMarkdown(s.textContent);
+        if (!s) return;
+        const bubble  = s.closest('.bubble');
+        if (!bubble) return;
+        const message = bubble.closest('.message');
+        if (!message) return;
+        const isUser  = message.classList && message.classList.contains('user');
+        if (!isUser) {
+            bubble.innerHTML = renderMarkdown(s.textContent || '');
+        } else {
+            const txt = (s.textContent || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            bubble.innerHTML = `<p>${txt}</p>`;
+        }
     });
-    function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
     function getCsrf() {
         const m = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
         return m ? decodeURIComponent(m.pop()) : '';
     }
+
+    function esc(t) {
+        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    /* ── Append a new message to the chat ── */
     function appendMessage(role, content, time) {
         document.getElementById('welcome')?.remove();
+        document.getElementById('newMsgSep')?.remove();
+
         const ca = document.getElementById('chatArea');
+        if (!ca) return;
         const d  = document.createElement('div');
         d.className = `message ${role}`;
+        const html = role === 'assistant'
+            ? renderMarkdown(content || '')
+            : `<p>${esc(content || '')}</p>`;
         d.innerHTML = `
-            <div class="avatar">${role==='user'?'👤':'🤖'}</div>
+            <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
             <div class="bubble-wrap">
-                <div class="bubble">${role==='assistant'?renderMarkdown(content):`<p>${esc(content)}</p>`}</div>
-                <div class="meta">${time}</div>
+                <div class="bubble">${html}</div>
+                <div class="meta">${time || ''}</div>
             </div>`;
-        ca.appendChild(d); ca.scrollTop = ca.scrollHeight;
+        ca.appendChild(d);
+        ca.scrollTop = ca.scrollHeight;
     }
+
     function showTyping() {
         const ca = document.getElementById('chatArea');
+        if (!ca) return;
         const d  = document.createElement('div');
         d.className = 'message assistant'; d.id = 'typing';
         d.innerHTML = `<div class="avatar">🤖</div><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
         ca.appendChild(d); ca.scrollTop = ca.scrollHeight;
     }
-    function removeTyping(){ document.getElementById('typing')?.remove(); }
+    function removeTyping() { document.getElementById('typing')?.remove(); }
+
     async function sendMessage() {
         const inp = document.getElementById('userInput');
         const btn = document.getElementById('sendBtn');
+        if (!inp || !btn) return;
         const msg = inp.value.trim();
         if (!msg || btn.disabled) return;
         btn.disabled = true; inp.value = ''; inp.style.height = 'auto';
-        const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         appendMessage('user', msg, time);
         showTyping();
         try {
@@ -316,22 +479,34 @@
                 headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': getCsrf() },
                 body: JSON.stringify({ message: msg })
             });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             removeTyping();
             appendMessage('assistant', data.error ? `⚠️ ${data.error}` : data.response, data.time || time);
-        } catch {
+        } catch (err) {
             removeTyping();
             appendMessage('assistant', '⚠️ Could not reach the AI. Please try again.', time);
         } finally {
-            btn.disabled = false; inp.focus();
+            btn.disabled = false;
+            inp?.focus();
         }
     }
-    function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
-    function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,130)+'px'; }
-    function sendSuggestion(el){ document.getElementById('userInput').value=el.textContent.trim(); sendMessage(); }
+
+    function handleKey(e)   { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+    function autoResize(el) { if (!el) return; el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,130)+'px'; }
+    function sendSuggestion(el) {
+        if (!el) return;
+        const inp = document.getElementById('userInput');
+        if (!inp) return;
+        inp.value = el.textContent.trim();
+        sendMessage();
+    }
+
     async function clearChat() {
         await fetch('/clear', { method: 'POST', headers: { 'X-XSRF-TOKEN': getCsrf() } });
-        document.getElementById('chatArea').innerHTML = `
+        const ca = document.getElementById('chatArea');
+        if (!ca) return;
+        ca.innerHTML = `
             <div class="welcome" id="welcome">
                 <div class="welcome-icon">💻</div>
                 <h2>What can I code for you?</h2>
@@ -344,8 +519,12 @@
                 </div>
             </div>`;
     }
-    document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
-    document.getElementById('userInput').focus();
+
+    /* scroll to bottom on load */
+    const chatArea = document.getElementById('chatArea');
+    if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+    const userInput = document.getElementById('userInput');
+    if (userInput) userInput.focus();
 </script>
 </body>
 </html>
