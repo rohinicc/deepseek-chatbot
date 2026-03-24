@@ -20,13 +20,12 @@
             --success:   #16a34a;
             --danger:    #dc2626;
             --glow:      0 0 0 3px rgba(37,99,235,0.10);
+            --sidebar:   220px;
             --c-bg:      #1e1e2e;
             --c-bg2:     #181825;
             --c-border:  #313244;
             --c-text:    #cdd6f4;
             --c-sub:     #6c7086;
-            --c-fn:      #89b4fa;
-            --c-str:     #a6e3a1;
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -45,44 +44,91 @@
         @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
 
-        .app {
-            display: grid; grid-template-rows: 52px 1fr auto;
-            height: 100vh; max-width: 900px;
-            margin: 0 auto; padding: 0 16px;
-            position: relative; z-index: 1;
-        }
+        .layout { display: flex; height: 100vh; position: relative; z-index: 1; }
 
-        /* ── Header ── */
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar); flex-shrink: 0;
+            background: var(--surface); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .sidebar-head {
+            padding: 14px 14px 10px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .sidebar-head .brand-mark {
+            width: 24px; height: 24px; border-radius: 5px; background: var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; flex-shrink: 0;
+        }
+        .sidebar-head .brand-name { font-size: 0.78rem; font-weight: 600; color: var(--ink); }
+        .sidebar-section {
+            padding: 10px 14px 6px; font-size: 0.6rem; color: var(--ink3);
+            letter-spacing: 0.06em; text-transform: uppercase;
+        }
+        .history-list {
+            flex: 1; overflow-y: auto; padding: 0 8px 12px;
+            scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+        }
+        .history-item {
+            padding: 7px 10px; border-radius: 6px; margin-bottom: 2px;
+            font-size: 0.68rem; color: var(--ink2); cursor: pointer;
+            transition: all 0.12s; line-height: 1.4;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .history-item:hover { background: var(--accent-l); color: var(--accent); }
+        .history-item .hi-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--border); flex-shrink: 0;
+        }
+        .history-item:hover .hi-dot { background: var(--accent); }
+        .history-empty {
+            padding: 12px 10px; font-size: 0.65rem; color: var(--ink3);
+            text-align: center; line-height: 1.6;
+        }
+        .sidebar-footer {
+            border-top: 1px solid var(--border); padding: 10px 12px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .sf-user { display: flex; align-items: center; gap: 7px; font-size: 0.68rem; color: var(--ink2); }
+        .sf-avatar {
+            width: 22px; height: 22px; border-radius: 5px;
+            background: var(--accent-l); border: 1px solid var(--accent-b);
+            display: flex; align-items: center; justify-content: center; font-size: 11px;
+        }
+        .sf-btn {
+            background: none; border: 1px solid var(--border); color: var(--ink3);
+            padding: 4px 10px; border-radius: 5px; width: 100%;
+            font-size: 0.63rem; font-family: 'IBM Plex Mono', monospace;
+            cursor: pointer; transition: all 0.15s; text-align: center;
+        }
+        .sf-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* ── Main ── */
+        .main { flex: 1; min-width: 0; display: grid; grid-template-rows: 52px 1fr auto; }
         header {
             display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border); padding: 0 20px;
         }
-        .brand      { display: flex; align-items: center; gap: 10px; }
-        .brand-mark { width: 28px; height: 28px; border-radius: 6px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
-        .brand-name { font-size: 0.88rem; font-weight: 600; color: var(--ink); letter-spacing: 0.02em; }
-        .header-right { display: flex; align-items: center; gap: 8px; }
         .h-status { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; color: var(--ink3); }
         .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
-        .h-user   { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--ink2); }
-        .h-avatar { width: 22px; height: 22px; border-radius: 5px; background: var(--accent-l); border: 1px solid var(--accent-b); display: flex; align-items: center; justify-content: center; font-size: 11px; }
+        .h-title { font-size: 0.78rem; color: var(--ink2); }
         .h-btn {
             background: none; border: 1px solid var(--border); color: var(--ink3);
-            padding: 4px 10px; border-radius: 5px;
-            font-size: 0.65rem; font-family: 'IBM Plex Mono', monospace;
-            cursor: pointer; transition: all 0.15s;
-            text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; border-radius: 5px; font-size: 0.65rem;
+            font-family: 'IBM Plex Mono', monospace; cursor: pointer;
+            transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px;
         }
         .h-btn:hover       { border-color: var(--accent); color: var(--accent); }
         .h-btn.clear:hover { border-color: var(--danger);  color: var(--danger); }
 
-        /* ── Chat area ── */
+        /* ── Chat ── */
         .chat-area {
-            overflow-y: auto; padding: 24px 0;
+            overflow-y: auto; padding: 24px 20px;
             display: flex; flex-direction: column; gap: 18px;
             scrollbar-width: thin; scrollbar-color: var(--border) transparent;
         }
-
-        /* ── Welcome ── */
         .welcome {
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; height: 100%; gap: 14px; text-align: center;
@@ -94,17 +140,16 @@
             margin-bottom: 4px; box-shadow: 0 4px 16px rgba(37,99,235,0.22);
             animation: floatY 3s ease-in-out infinite;
         }
-        .welcome h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.15rem; font-weight: 600; }
+        .welcome h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--ink); }
         .welcome p  { font-size: 0.72rem; color: var(--ink2); max-width: 340px; line-height: 1.7; }
         .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 4px; }
         .chip {
             background: var(--surface); border: 1px solid var(--border);
-            padding: 6px 12px; border-radius: 6px;
-            font-size: 0.68rem; cursor: pointer; color: var(--ink2); transition: all 0.15s;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.68rem;
+            cursor: pointer; color: var(--ink2); transition: all 0.15s;
         }
         .chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
 
-        /* ── Messages ── */
         .message { display: flex; gap: 10px; animation: fadeUp 0.2s ease both; }
         .message.user { flex-direction: row-reverse; }
         .avatar {
@@ -115,12 +160,12 @@
         .message.user .avatar      { background: var(--accent-l); border: 1px solid var(--accent-b); }
         .message.assistant .avatar { background: var(--surface2); border: 1px solid var(--border); }
 
-        .bubble-wrap { max-width: 82%; min-width: 0; }
+        .bubble-wrap { max-width: 78%; min-width: 0; }
         .message.user .bubble-wrap { display: flex; flex-direction: column; align-items: flex-end; }
 
         .bubble {
             border-radius: 8px; padding: 10px 14px;
-            font-size: 0.82rem; line-height: 1.7;
+            font-size: 0.82rem; line-height: 1.75;
             word-break: break-word; overflow-wrap: anywhere; min-width: 0;
         }
         .message.user .bubble {
@@ -135,72 +180,64 @@
             font-family: 'IBM Plex Sans', sans-serif;
             box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
+
+        /* ── KEY FIX: force ALL text in assistant bubble to sans-serif ── */
+        .message.assistant .bubble p,
+        .message.assistant .bubble li,
+        .message.assistant .bubble h3,
+        .message.assistant .bubble strong,
+        .message.assistant .bubble em,
+        .message.assistant .bubble span {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
         .meta { font-size: 0.58rem; color: var(--ink3); margin-top: 4px; padding: 0 2px; }
 
-        /* ── History date separator ── */
-        .date-sep {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 0.62rem; color: var(--ink3); margin: 4px 0;
-        }
-        .date-sep::before, .date-sep::after {
-            content: ''; flex: 1; height: 1px; background: var(--border);
-        }
-
-        /* ── Code block — dark theme with line numbers ── */
+        /* ── Code block ── */
         .code-wrapper {
             margin: 10px 0; border-radius: 8px;
-            overflow: hidden; border: 1px solid var(--c-border); width: 100%;
+            overflow: hidden; border: 1px solid var(--c-border);
         }
         .code-header {
             display: flex; align-items: center; justify-content: space-between;
-            background: var(--c-bg2); padding: 7px 14px;
+            background: var(--c-bg2); padding: 6px 14px;
             font-size: 0.68rem; color: var(--c-sub);
             font-family: 'IBM Plex Mono', monospace;
-            border-bottom: 1px solid var(--c-border);
         }
-        .code-lang { color: var(--c-fn); font-weight: 500; }
         .copy-btn {
             background: var(--c-border); border: none; color: var(--c-text);
-            padding: 3px 10px; border-radius: 4px; font-size: 0.65rem;
-            cursor: pointer; font-family: 'IBM Plex Mono', monospace; transition: all 0.15s;
+            padding: 2px 9px; border-radius: 4px; font-size: 0.63rem;
+            cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+            transition: background 0.15s;
         }
-        .copy-btn:hover  { background: #45475a; }
-        .copy-btn.copied { background: #1e3a2f; color: var(--c-str); }
+        .copy-btn:hover { background: #45475a; }
 
-        .code-body { display: flex; background: var(--c-bg); overflow-x: auto; width: 100%; }
-        .line-nums {
-            padding: 14px 10px 14px 14px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.78rem; line-height: 1.7; color: var(--c-sub);
-            text-align: right; user-select: none; flex-shrink: 0;
-            border-right: 1px solid var(--c-border); min-width: 36px;
-        }
+        /* code only uses monospace — everything else is sans */
         .bubble pre {
-            background: transparent; padding: 14px 16px; margin: 0; flex: 1;
-            font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;
-            line-height: 1.7; color: var(--c-text);
+            background: var(--c-bg); padding: 14px 16px; margin: 0;
+            overflow-x: auto; width: 100%;
+            font-family: 'IBM Plex Mono', monospace !important;
+            font-size: 0.79rem; line-height: 1.75; color: var(--c-text);
             white-space: pre; word-break: normal; overflow-wrap: normal; tab-size: 4;
         }
-        .bubble pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
-
-        /* inline code */
+        .bubble pre code {
+            font-family: 'IBM Plex Mono', monospace !important;
+            white-space: pre; word-break: normal;
+        }
         .bubble code:not(pre code) {
             background: var(--accent-l); border: 1px solid var(--accent-b);
             padding: 1px 5px; border-radius: 4px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.82em; color: var(--accent);
+            font-family: 'IBM Plex Mono', monospace !important;
+            font-size: 0.82em; color: var(--accent); white-space: nowrap;
         }
-
-        /* text formatting */
-        .bubble p          { margin-bottom: 8px; }
+        .bubble p  { margin-bottom: 8px; font-family: 'IBM Plex Sans', sans-serif; }
         .bubble p:last-child { margin-bottom: 0; }
-        .bubble strong     { font-weight: 600; }
-        .bubble h3         { font-size: 0.9rem; font-weight: 600; margin: 12px 0 5px; }
+        .bubble strong { font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; }
+        .bubble h3 { font-size: 0.88rem; font-weight: 600; margin: 10px 0 5px; font-family: 'IBM Plex Sans', sans-serif; }
         .bubble ol, .bubble ul { padding-left: 20px; margin: 6px 0; }
-        .bubble li         { margin-bottom: 4px; line-height: 1.6; }
-        .bubble hr         { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+        .bubble li { margin-bottom: 4px; line-height: 1.6; font-family: 'IBM Plex Sans', sans-serif; }
+        .bubble hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
 
-        /* ── Typing indicator ── */
         .typing {
             display: inline-flex; align-items: center; gap: 4px;
             background: var(--surface); border: 1px solid var(--border);
@@ -211,8 +248,7 @@
         .typing-dot:nth-child(2){animation-delay:.2s}
         .typing-dot:nth-child(3){animation-delay:.4s}
 
-        /* ── Input area ── */
-        .input-area { padding: 12px 0 18px; border-top: 1px solid var(--border); }
+        .input-area { padding: 12px 20px 18px; border-top: 1px solid var(--border); }
         .input-wrapper {
             display: flex; align-items: flex-end; gap: 8px;
             background: var(--surface); border: 1.5px solid var(--border);
@@ -242,212 +278,180 @@
     </style>
 </head>
 <body>
-<div class="app">
-    <header>
-        <div class="brand">
+<div class="layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+        <div class="sidebar-head">
             <div class="brand-mark">🤖</div>
             <span class="brand-name">ai-coder</span>
         </div>
-        <div class="header-right">
-            <div class="h-status"><span class="status-dot"></span>ready</div>
-            <div class="h-user">
-                <div class="h-avatar">👤</div>
+        <div class="sidebar-section">Today's chats</div>
+        <div class="history-list" id="historyList">
+            <div class="history-empty" id="historyEmpty">No questions yet today.</div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="sf-user">
+                <div class="sf-avatar">👤</div>
                 <span th:text="${username}">user</span>
             </div>
-            <button class="h-btn clear" onclick="clearChat()">⌫ clear</button>
-            <form th:action="@{/logout}" method="post" style="display:inline">
+            <form th:action="@{/logout}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="submit" class="h-btn">↩ logout</button>
+                <button type="submit" class="sf-btn">↩ logout</button>
             </form>
         </div>
-    </header>
+    </aside>
 
-    <div class="chat-area" id="chatArea">
-
-        <!-- ── Welcome screen (shown when no history) ── -->
-        <div class="welcome" id="welcome" th:if="${messages == null or messages.isEmpty()}">
-            <div class="welcome-icon">💻</div>
-            <h2 th:text="'Hello, ' + ${username} + '! What can I code for you?'">What can I code for you?</h2>
-            <p>Ask anything — algorithms, debugging, architecture, Spring Boot, and more.</p>
-            <div class="chips">
-                <span class="chip" onclick="sendSuggestion(this)">REST API in Spring Boot</span>
-                <span class="chip" onclick="sendSuggestion(this)">async/await in JavaScript</span>
-                <span class="chip" onclick="sendSuggestion(this)">Binary search in Java</span>
-                <span class="chip" onclick="sendSuggestion(this)">SQL query optimisation</span>
+    <!-- ── Main ── -->
+    <div class="main">
+        <header>
+            <div class="h-status">
+                <span class="status-dot"></span>
+                <span class="h-title">ready</span>
             </div>
-        </div>
+            <button class="h-btn clear" onclick="clearChat()">⌫ clear chat</button>
+        </header>
 
-        <!-- ── Chat history header (shown when history exists) ── -->
-        <div th:if="${messages != null and !messages.isEmpty()}" class="date-sep">
-            chat history
-        </div>
-
-        <!-- ── Render saved messages from Redis ── -->
-        <th:block th:each="msg : ${messages}">
-            <div th:class="'message ' + ${msg.role}">
-                <div class="avatar" th:text="${msg.role == 'user' ? '👤' : '🤖'}"></div>
-                <div class="bubble-wrap">
-                    <div class="bubble">
-                        <span class="raw-content" style="display:none" th:text="${msg.content}"></span>
-                    </div>
-                    <div class="meta" th:text="${msg.timestamp}"></div>
+        <div class="chat-area" id="chatArea">
+            <div class="welcome" id="welcome" th:if="${messages == null or messages.isEmpty()}">
+                <div class="welcome-icon">💻</div>
+                <h2 th:text="'Hello, ' + ${username} + '!'">Hello!</h2>
+                <p>Ask anything — algorithms, debugging, architecture, Spring Boot, and more.</p>
+                <div class="chips">
+                    <span class="chip" onclick="sendSuggestion(this)">REST API in Spring Boot</span>
+                    <span class="chip" onclick="sendSuggestion(this)">async/await in JavaScript</span>
+                    <span class="chip" onclick="sendSuggestion(this)">Binary search in Java</span>
+                    <span class="chip" onclick="sendSuggestion(this)">SQL query optimisation</span>
                 </div>
             </div>
-        </th:block>
-
-        <!-- ── Separator between history and new messages ── -->
-        <div th:if="${messages != null and !messages.isEmpty()}" class="date-sep" id="newMsgSep">
-            new messages
+            <th:block th:each="msg : ${messages}">
+                <div th:class="'message ' + ${msg.role}">
+                    <div class="avatar" th:text="${msg.role == 'user' ? '👤' : '🤖'}"></div>
+                    <div class="bubble-wrap">
+                        <div class="bubble">
+                            <span class="raw-content" style="display:none" th:text="${msg.content}"></span>
+                        </div>
+                        <div class="meta" th:text="${msg.timestamp}"></div>
+                    </div>
+                </div>
+            </th:block>
         </div>
 
-    </div>
-
-    <div class="input-area">
-        <div class="input-wrapper">
-            <span class="input-ps">❯</span>
-            <textarea id="userInput" rows="1"
-                placeholder="ask ai-coder anything…"
-                onkeydown="handleKey(event)"
-                oninput="autoResize(this)"></textarea>
-            <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
+        <div class="input-area">
+            <div class="input-wrapper">
+                <span class="input-ps">❯</span>
+                <textarea id="userInput" rows="1"
+                    placeholder="ask ai-coder anything…"
+                    onkeydown="handleKey(event)"
+                    oninput="autoResize(this)"></textarea>
+                <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
+            </div>
+            <div class="input-hint">enter to send &nbsp;·&nbsp; shift+enter for new line</div>
         </div>
-        <div class="input-hint">enter to send &nbsp;·&nbsp; shift+enter for new line</div>
     </div>
 </div>
 
 <script>
-    /* ── Build code block with line numbers + copy button ── */
-    function buildCodeBlock(lang, rawCode) {
-        /* fix model outputting multiple statements on one line */
-        let code = rawCode
-            .replace(/\r\n/g, '\n')
-            .replace(/\r/g, '\n')
-            .trim();
+    const HISTORY_KEY = 'aicoder_history_' + new Date().toDateString();
+    let questionHistory = JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
 
-        const label = lang ? lang.toLowerCase() : 'code';
-        const lines  = code.split('\n');
-        const lineNums = lines.map((_,i) => i+1).join('\n');
+    function saveQuestion(q) {
+        if (!q || q.length < 3) return;
+        const short = q.length > 40 ? q.substring(0, 40) + '…' : q;
+        if (!questionHistory.includes(short)) {
+            questionHistory.unshift(short);
+            if (questionHistory.length > 20) questionHistory.pop();
+            sessionStorage.setItem(HISTORY_KEY, JSON.stringify(questionHistory));
+        }
+        renderHistory();
+    }
 
-        const escaped = code
+    function renderHistory() {
+        const list = document.getElementById('historyList');
+        const empty = document.getElementById('historyEmpty');
+        if (questionHistory.length === 0) {
+            if (empty) empty.style.display = 'block';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+        list.innerHTML = questionHistory.map(q => `
+            <div class="history-item" onclick="reuseQuestion(this)" title="${q}">
+                <span class="hi-dot"></span>${q}
+            </div>`).join('');
+    }
+
+    function reuseQuestion(el) {
+        const q = el.getAttribute('title');
+        document.getElementById('userInput').value = q;
+        document.getElementById('userInput').focus();
+    }
+
+    function renderMarkdown(raw) {
+        let t = raw
             .replace(/&/g,'&amp;')
             .replace(/</g,'&lt;')
             .replace(/>/g,'&gt;');
 
-        return `<div class="code-wrapper">
-            <div class="code-header">
-                <span class="code-lang">${label}</span>
-                <button class="copy-btn" onclick="copyCode(this)">copy</button>
-            </div>
-            <div class="code-body">
-                <div class="line-nums">${lineNums}</div>
-                <pre><code>${escaped}</code></pre>
-            </div>
-        </div>`;
-    }
-
-    /* ── Render markdown to HTML ── */
-    function renderMarkdown(raw) {
-        if (!raw) return '';
-        let t = raw;
-
-        /* extract and replace code blocks first before any escaping */
-        const codeBlocks = [];
+        /* fenced code blocks */
         t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-            const idx = codeBlocks.length;
-            codeBlocks.push(buildCodeBlock(lang, code));
-            return `%%CODE_BLOCK_${idx}%%`;
+            const label = lang || 'code';
+            const lines = code.trimEnd();
+            return `<div class="code-wrapper">
+                <div class="code-header">
+                    <span>${label}</span>
+                    <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                </div>
+                <pre><code>${lines}</code></pre>
+            </div>`;
         });
 
-        /* now escape HTML in non-code text */
-        t = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-        /* inline formatting */
         t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
         t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         t = t.replace(/\*(.+?)\*/g,     '<em>$1</em>');
         t = t.replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>');
-        t = t.replace(/^[-–—]{3,}$/gm,   '<hr>');
+        t = t.replace(/^[-–—]{3,}$/gm, '<hr>');
         t = t.replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
         t = t.replace(/^[-•*]\s+(.+)$/gm,   '<li>$1</li>');
 
-        /* paragraphs */
         t = t.split(/\n{2,}/).map(p => {
             p = p.trim();
             if (!p) return '';
-            if (/^%%CODE_BLOCK/.test(p))   return p;
-            if (/^<(h3|hr|li)/.test(p))    return p;
+            if (/^<(div|pre|h3|hr|li)/.test(p)) return p;
             return `<p>${p.replace(/\n/g,'<br>')}</p>`;
         }).join('');
-
-        /* restore code blocks */
-        codeBlocks.forEach((block, i) => {
-            t = t.replace(`%%CODE_BLOCK_${i}%%`, block);
-        });
 
         return t;
     }
 
-    /* ── Copy code to clipboard ── */
     function copyCode(btn) {
-        if (!btn) return;
-        const wrapper = btn.closest('.code-wrapper');
-        if (!wrapper) return;
-        const codeEl = wrapper.querySelector('code');
-        if (!codeEl) return;
-        navigator.clipboard.writeText(codeEl.innerText).then(() => {
+        const code = btn.closest('.code-wrapper').querySelector('code').innerText;
+        navigator.clipboard.writeText(code).then(() => {
             btn.textContent = 'copied!';
-            btn.classList.add('copied');
-            setTimeout(() => {
-                if (btn) { btn.textContent = 'copy'; btn.classList.remove('copied'); }
-            }, 2000);
-        }).catch(() => {
-            btn.textContent = 'error';
-            setTimeout(() => { if (btn) btn.textContent = 'copy'; }, 2000);
+            setTimeout(() => btn.textContent = 'copy', 2000);
         });
     }
 
-    /* ── Render history messages on page load ── */
     document.querySelectorAll('.raw-content').forEach(s => {
-        if (!s) return;
-        const bubble  = s.closest('.bubble');
-        if (!bubble) return;
-        const message = bubble.closest('.message');
-        if (!message) return;
-        const isUser  = message.classList && message.classList.contains('user');
-        if (!isUser) {
-            bubble.innerHTML = renderMarkdown(s.textContent || '');
-        } else {
-            const txt = (s.textContent || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-            bubble.innerHTML = `<p>${txt}</p>`;
-        }
+        s.closest('.bubble').innerHTML = renderMarkdown(s.textContent);
     });
+    renderHistory();
 
+    function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function getCsrf() {
         const m = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
         return m ? decodeURIComponent(m.pop()) : '';
     }
 
-    function esc(t) {
-        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    /* ── Append a new message to the chat ── */
     function appendMessage(role, content, time) {
         document.getElementById('welcome')?.remove();
-        document.getElementById('newMsgSep')?.remove();
-
         const ca = document.getElementById('chatArea');
-        if (!ca) return;
         const d  = document.createElement('div');
         d.className = `message ${role}`;
-        const html = role === 'assistant'
-            ? renderMarkdown(content || '')
-            : `<p>${esc(content || '')}</p>`;
         d.innerHTML = `
-            <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
+            <div class="avatar">${role==='user'?'👤':'🤖'}</div>
             <div class="bubble-wrap">
-                <div class="bubble">${html}</div>
-                <div class="meta">${time || ''}</div>
+                <div class="bubble">${role==='assistant'?renderMarkdown(content):`<p>${esc(content)}</p>`}</div>
+                <div class="meta">${time}</div>
             </div>`;
         ca.appendChild(d);
         ca.scrollTop = ca.scrollHeight;
@@ -455,22 +459,21 @@
 
     function showTyping() {
         const ca = document.getElementById('chatArea');
-        if (!ca) return;
         const d  = document.createElement('div');
         d.className = 'message assistant'; d.id = 'typing';
         d.innerHTML = `<div class="avatar">🤖</div><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
         ca.appendChild(d); ca.scrollTop = ca.scrollHeight;
     }
-    function removeTyping() { document.getElementById('typing')?.remove(); }
+    function removeTyping(){ document.getElementById('typing')?.remove(); }
 
     async function sendMessage() {
         const inp = document.getElementById('userInput');
         const btn = document.getElementById('sendBtn');
-        if (!inp || !btn) return;
         const msg = inp.value.trim();
         if (!msg || btn.disabled) return;
         btn.disabled = true; inp.value = ''; inp.style.height = 'auto';
-        const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        saveQuestion(msg);
         appendMessage('user', msg, time);
         showTyping();
         try {
@@ -479,34 +482,24 @@
                 headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': getCsrf() },
                 body: JSON.stringify({ message: msg })
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             removeTyping();
             appendMessage('assistant', data.error ? `⚠️ ${data.error}` : data.response, data.time || time);
-        } catch (err) {
+        } catch {
             removeTyping();
             appendMessage('assistant', '⚠️ Could not reach the AI. Please try again.', time);
         } finally {
-            btn.disabled = false;
-            inp?.focus();
+            btn.disabled = false; inp.focus();
         }
     }
 
-    function handleKey(e)   { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
-    function autoResize(el) { if (!el) return; el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,130)+'px'; }
-    function sendSuggestion(el) {
-        if (!el) return;
-        const inp = document.getElementById('userInput');
-        if (!inp) return;
-        inp.value = el.textContent.trim();
-        sendMessage();
-    }
+    function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+    function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,130)+'px'; }
+    function sendSuggestion(el){ document.getElementById('userInput').value=el.textContent.trim(); sendMessage(); }
 
     async function clearChat() {
         await fetch('/clear', { method: 'POST', headers: { 'X-XSRF-TOKEN': getCsrf() } });
-        const ca = document.getElementById('chatArea');
-        if (!ca) return;
-        ca.innerHTML = `
+        document.getElementById('chatArea').innerHTML = `
             <div class="welcome" id="welcome">
                 <div class="welcome-icon">💻</div>
                 <h2>What can I code for you?</h2>
@@ -520,11 +513,8 @@
             </div>`;
     }
 
-    /* scroll to bottom on load */
-    const chatArea = document.getElementById('chatArea');
-    if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-    const userInput = document.getElementById('userInput');
-    if (userInput) userInput.focus();
+    document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+    document.getElementById('userInput').focus();
 </script>
 </body>
 </html>
