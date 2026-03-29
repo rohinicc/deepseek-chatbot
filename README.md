@@ -1,6 +1,7 @@
 # AI Coder — Spring Boot Chatbot
 
-![Chat Interface](docs/images/chat.png)
+![Chat Interface]
+<img width="2880" height="1626" alt="image" src="https://github.com/user-attachments/assets/0638eafb-ed62-4459-87b4-08eda5c426c7" />
 
 A powerful, locally-hosted AI coding assistant built with **Spring Boot 3.5**, **Spring AI**, and **Ollama**. This application provides a modern, full-stack web interface for interacting with the `deepseek-coder` LLM. It includes secure user authentication, persistent chat history using Redis, and robust CSRF protection compatible with tunneling services like **ngrok**.
 
@@ -11,19 +12,22 @@ A powerful, locally-hosted AI coding assistant built with **Spring Boot 3.5**, *
 ## 🚀 Features & UI Walkthrough
 
 ### 1. Modern Chat Interface
-![Chat Interface](docs/images/chat.png)
+![Chat Interface](<img width="2879" height="1600" alt="Screenshot 2026-03-29 153624" src="https://github.com/user-attachments/assets/9e9a0e6a-bb33-4d10-bae9-ed81de7d714a" />)
 - **Local AI Processing:** Uses Ollama and `deepseek-coder` to generate code without sending data to external cloud APIs.
 - **Rich Markdown Formatting:** A clean, responsive interface built with HTML, CSS, and Vanilla JS. Features full Markdown rendering and syntax highlighting (via `highlight.js`) for generated code blocks.
 - **Smart UX:** Includes a typing indicator, auto-resizing text areas, and quick-prompt chips for common coding questions.
 
 ### 2. Secure Authentication
-![Login Page](docs/images/login.png)
-![Signup Page](docs/images/signup.png)
+![Login Page](<img width="2879" height="1621" alt="Screenshot 2026-03-29 153645" src="https://github.com/user-attachments/assets/ba845d68-d798-4842-9b52-fccff6716591" />
+)
+![Signup Page](<img width="2879" height="1617" alt="Screenshot 2026-03-29 153704" src="https://github.com/user-attachments/assets/771a53e0-2a53-4024-9bb0-f6ebc578ae0d" />
+)
 - **Secure by Default:** Built on Spring Security 6 with BCrypt password hashing.
 - **No Email Hassle:** Frictionless signup process gets users coding immediately.
 
 ### 3. Persistent Sessions
-![Welcome Page](docs/images/welcome.png)
+![Welcome Page](<img width="2879" height="1617" alt="Screenshot 2026-03-29 153725" src="https://github.com/user-attachments/assets/0796b5b0-a480-482a-9c7c-7c51fe21370b" />
+)
 - **Persistent Chat History:** User sessions and chat logs are stored in Redis (24-hour TTL), meaning you can refresh or return later to pick up exactly where you left off.
 - **ngrok Ready:** Fully configured to run behind an ngrok tunnel (handles `X-Forwarded-*` headers and SPA-style CSRF tokens over JSON `fetch()` requests).
 
@@ -95,26 +99,6 @@ APP_PORT=8080
 
 > **Troubleshooting Port Errors:** If you see `Web server failed to start. Port 8080 was already in use`, it means a previous run is still active. Kill it using:
 > `Get-NetTCPConnection -LocalPort 8080 | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }`
-
----
-
-## 🌐 Hosting Publicly via ngrok
-
-The application is specifically programmed to support ngrok's secure tunneling.
-
-1. Start the Spring Boot application locally (as shown above).
-2. Open a **new** terminal window.
-3. Start ngrok on port 8080:
-   ```powershell
-   ngrok http 8080
-   ```
-4. Copy the `Forwarding` URL (e.g., `https://random-words.ngrok-free.app`).
-5. Share this URL. Anyone can access the site from anywhere!
-
-### 💡 ngrok Free Tier Warning Page
-If using the free tier of ngrok, visiting the app for the first time will display a "browser warning" interstitial page.
-- Simply click **"Visit Site"** to proceed to the application.
-- Because the app uses proper Spring Security configuration (`server.forward-headers-strategy=framework` and Javascript `X-XSRF-TOKEN` headers), all authentication and chat features will work perfectly across the tunnel.
 
 ---
 
