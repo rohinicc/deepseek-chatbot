@@ -62,7 +62,7 @@ Before running the application, ensure you have the following installed and runn
 Ensure Ollama is installed, then pull the required model:
 ```bash
 ollama serve
-ollama pull deepseek-coder:latest
+ollama pull LLm-model
 ```
 
 ### Setting up MySQL
