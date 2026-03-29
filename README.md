@@ -13,7 +13,7 @@ A powerful, locally-hosted AI coding assistant built with **Spring Boot 3.5**, *
 
 ### 1. Modern Chat Interface
 <img width="2879" height="1600" alt="Screenshot 2026-03-29 153624" src="https://github.com/user-attachments/assets/9e9a0e6a-bb33-4d10-bae9-ed81de7d714a" />
-- **Local AI Processing:** Uses Ollama and `deepseek-coder` to generate code without sending data to external cloud APIs.
+- **Local AI Processing:** Uses Ollama llms to generate code without sending data to external cloud APIs.
 - **Rich Markdown Formatting:** A clean, responsive interface built with HTML, CSS, and Vanilla JS. Features full Markdown rendering and syntax highlighting (via `highlight.js`) for generated code blocks.
 - **Smart UX:** Includes a typing indicator, auto-resizing text areas, and quick-prompt chips for common coding questions.
 
