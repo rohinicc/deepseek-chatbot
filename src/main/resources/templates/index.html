@@ -3,518 +3,573 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Coder</title>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>AI Coder — Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- marked.js for rendering AI markdown responses -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
     <style>
         :root {
-            --bg:        #f5f4f0;
-            --surface:   #ffffff;
-            --surface2:  #f0eeeb;
-            --border:    #dddbd4;
-            --ink:       #1a1a1a;
-            --ink2:      #6b6b63;
-            --ink3:      #9e9d96;
-            --accent:    #2563eb;
-            --accent-l:  #eff4ff;
-            --accent-b:  #bfdbfe;
-            --success:   #16a34a;
-            --danger:    #dc2626;
-            --glow:      0 0 0 3px rgba(37,99,235,0.10);
-            --sidebar:   220px;
-            --c-bg:      #1e1e2e;
-            --c-bg2:     #181825;
-            --c-border:  #313244;
-            --c-text:    #cdd6f4;
-            --c-sub:     #6c7086;
+            --bg:       #f5f4f0;
+            --bg2:      #edecea;
+            --surface:  #ffffff;
+            --border:   #dddbd4;
+            --ink:      #1a1a1a;
+            --ink2:     #6b6b63;
+            --ink3:     #9e9d96;
+            --accent:   #2563eb;
+            --accent-l: #eff4ff;
+            --accent-b: #bfdbfe;
+            --success:  #16a34a;
+            --danger:   #dc2626;
+            --glow:     0 0 0 3px rgba(37,99,235,0.10);
+            --sidebar:  260px;
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            height: 100%; background: var(--bg); color: var(--ink);
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            background: var(--bg);
+            color: var(--ink);
             font-family: 'IBM Plex Mono', monospace;
-            -webkit-font-smoothing: antialiased; overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
         }
-        body::before {
-            content: ''; position: fixed; inset: 0;
-            background-image: linear-gradient(var(--border) 1px, transparent 1px),
-                              linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.45; pointer-events: none; z-index: 0;
+
+        @keyframes fadeUp   { from{opacity:0;transform:translateY(8px)}  to{opacity:1;transform:translateY(0)} }
+        @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.35} }
+        @keyframes spin     { to{transform:rotate(360deg)} }
+        @keyframes slideIn  { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+
+        /* ─── TOPBAR ────────────────────────────────────────────────────── */
+        .topbar {
+            flex-shrink: 0;
+            height: 52px; background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 20px; z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
-        @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.35} }
-        @keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:.35} 30%{transform:translateY(-5px);opacity:1} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .brand-mark { width:28px; height:28px; border-radius:6px; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; }
+        .brand-name { font-size:0.88rem; font-weight:600; color:var(--ink); letter-spacing:0.02em; }
+        .topbar-mid { flex:1; display:flex; justify-content:center; align-items:center; gap:8px; font-size:0.7rem; color:var(--ink2); }
+        .model-badge { padding:3px 10px; border-radius:4px; background:var(--bg2); border:1px solid var(--border); font-size:0.62rem; color:var(--ink2); }
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+        .status-dot { width:6px; height:6px; border-radius:50%; background:var(--success); animation:pulse 2s infinite; }
+        .status-txt { font-size:0.65rem; color:var(--ink3); }
+        .btn-logout {
+            font-size:0.68rem; color:var(--ink2); text-decoration:none;
+            padding:5px 12px; border-radius:5px; border:1px solid var(--border);
+            background:var(--bg2); transition:all 0.15s; font-family:inherit;
+        }
+        .btn-logout:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-l); }
 
-        .layout { display: flex; height: 100vh; position: relative; z-index: 1; }
+        /* ─── SHELL ─────────────────────────────────────────────────────── */
+        .shell {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
 
-        /* ── Sidebar ── */
+        /* ─── SIDEBAR ───────────────────────────────────────────────────── */
         .sidebar {
             width: var(--sidebar); flex-shrink: 0;
-            background: var(--surface); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; overflow: hidden;
+            background: var(--bg2); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            overflow: hidden;
         }
         .sidebar-head {
-            padding: 14px 14px 10px; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; gap: 8px;
-        }
-        .sidebar-head .brand-mark {
-            width: 24px; height: 24px; border-radius: 5px; background: var(--accent);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; flex-shrink: 0;
-        }
-        .sidebar-head .brand-name { font-size: 0.78rem; font-weight: 600; color: var(--ink); }
-        .sidebar-section {
-            padding: 10px 14px 6px; font-size: 0.6rem; color: var(--ink3);
-            letter-spacing: 0.06em; text-transform: uppercase;
-        }
-        .history-list {
-            flex: 1; overflow-y: auto; padding: 0 8px 12px;
-            scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-        }
-        .history-item {
-            padding: 7px 10px; border-radius: 6px; margin-bottom: 2px;
-            font-size: 0.68rem; color: var(--ink2); cursor: pointer;
-            transition: all 0.12s; line-height: 1.4;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .history-item:hover { background: var(--accent-l); color: var(--accent); }
-        .history-item .hi-dot {
-            width: 5px; height: 5px; border-radius: 50%;
-            background: var(--border); flex-shrink: 0;
-        }
-        .history-item:hover .hi-dot { background: var(--accent); }
-        .history-empty {
-            padding: 12px 10px; font-size: 0.65rem; color: var(--ink3);
-            text-align: center; line-height: 1.6;
-        }
-        .sidebar-footer {
-            border-top: 1px solid var(--border); padding: 10px 12px;
-            display: flex; flex-direction: column; gap: 6px;
-        }
-        .sf-user { display: flex; align-items: center; gap: 7px; font-size: 0.68rem; color: var(--ink2); }
-        .sf-avatar {
-            width: 22px; height: 22px; border-radius: 5px;
-            background: var(--accent-l); border: 1px solid var(--accent-b);
-            display: flex; align-items: center; justify-content: center; font-size: 11px;
-        }
-        .sf-btn {
-            background: none; border: 1px solid var(--border); color: var(--ink3);
-            padding: 4px 10px; border-radius: 5px; width: 100%;
-            font-size: 0.63rem; font-family: 'IBM Plex Mono', monospace;
-            cursor: pointer; transition: all 0.15s; text-align: center;
-        }
-        .sf-btn:hover { border-color: var(--danger); color: var(--danger); }
-
-        /* ── Main ── */
-        .main { flex: 1; min-width: 0; display: grid; grid-template-rows: 52px 1fr auto; }
-        header {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border); padding: 0 20px;
         }
-        .h-status { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; color: var(--ink3); }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
-        .h-title { font-size: 0.78rem; color: var(--ink2); }
-        .h-btn {
-            background: none; border: 1px solid var(--border); color: var(--ink3);
-            padding: 4px 10px; border-radius: 5px; font-size: 0.65rem;
-            font-family: 'IBM Plex Mono', monospace; cursor: pointer;
-            transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px;
+        .sidebar-title { font-size:0.65rem; color:var(--ink3); letter-spacing:0.1em; text-transform:uppercase; }
+        .btn-new-chat {
+            font-size:0.65rem; padding:4px 10px; border-radius:5px;
+            background:var(--accent); color:#fff; border:none;
+            cursor:pointer; font-family:inherit; transition:opacity 0.15s;
         }
-        .h-btn:hover       { border-color: var(--accent); color: var(--accent); }
-        .h-btn.clear:hover { border-color: var(--danger);  color: var(--danger); }
+        .btn-new-chat:hover { opacity:0.88; }
+        .sidebar-body { flex:1; padding:12px 10px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+        .session-item {
+            padding:8px 10px; border-radius:6px; cursor:pointer;
+            border:1px solid transparent; transition:all 0.15s; font-size:0.7rem;
+            color:var(--ink2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .session-item:hover { background:var(--surface); border-color:var(--border); }
+        .session-item.active { background:var(--surface); border-color:var(--accent-b); color:var(--accent); }
+        .sidebar-foot {
+            padding:12px 14px;
+            border-top:1px solid var(--border);
+            font-size:0.65rem; color:var(--ink3);
+        }
+        .user-row { display:flex; align-items:center; gap:8px; }
+        .user-avatar {
+            width:26px; height:26px; border-radius:6px;
+            background:var(--accent); display:flex; align-items:center;
+            justify-content:center; font-size:11px; color:#fff; font-weight:600;
+        }
+        .user-name { color:var(--ink2); }
 
-        /* ── Chat ── */
-        .chat-area {
-            overflow-y: auto; padding: 24px 20px;
-            display: flex; flex-direction: column; gap: 18px;
-            scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+        /* ─── MAIN CHAT ─────────────────────────────────────────────────── */
+        .main {
+            flex:1; display:flex; flex-direction:column; overflow:hidden;
+            background:var(--surface);
         }
-        .welcome {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100%; gap: 14px; text-align: center;
-            animation: fadeUp 0.35s ease both;
+
+        /* MESSAGES AREA */
+        .messages {
+            flex:1; overflow-y:auto; padding:28px 0 12px;
+            display:flex; flex-direction:column; gap:0;
+            scroll-behavior:smooth;
         }
-        .welcome-icon {
-            width: 60px; height: 60px; border-radius: 14px; background: var(--accent);
-            display: flex; align-items: center; justify-content: center; font-size: 26px;
-            margin-bottom: 4px; box-shadow: 0 4px 16px rgba(37,99,235,0.22);
-            animation: floatY 3s ease-in-out infinite;
+        .msg-group {
+            padding:14px 32px;
+            animation:fadeUp 0.25s ease both;
+            display:flex; flex-direction:column; gap:6px;
         }
-        .welcome h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--ink); }
-        .welcome p  { font-size: 0.72rem; color: var(--ink2); max-width: 340px; line-height: 1.7; }
-        .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 4px; }
+        .msg-group:hover { background:rgba(0,0,0,0.012); }
+
+        .msg-meta {
+            display:flex; align-items:center; gap:8px;
+            font-size:0.6rem; color:var(--ink3);
+        }
+        .msg-role {
+            font-weight:600; font-size:0.62rem; letter-spacing:0.06em;
+            text-transform:uppercase;
+        }
+        .msg-role.user { color:var(--accent); }
+        .msg-role.assistant { color:var(--success); }
+        .msg-time { color:var(--ink3); }
+
+        .msg-body {
+            font-size:0.84rem; line-height:1.75; color:var(--ink);
+            font-family:'IBM Plex Sans', sans-serif;
+            padding-left:2px;
+        }
+        .msg-body.user-body { color:var(--ink); }
+        .msg-body.assistant-body { color:var(--ink); }
+
+        /* Markdown rendered content */
+        .msg-body p { margin-bottom:10px; }
+        .msg-body p:last-child { margin-bottom:0; }
+        .msg-body pre {
+            background:#0d1117; border-radius:8px; padding:14px 16px;
+            margin:10px 0; overflow-x:auto; border:1px solid #30363d;
+        }
+        .msg-body code {
+            font-family:'IBM Plex Mono', monospace; font-size:0.8rem;
+        }
+        .msg-body p code {
+            background:var(--bg2); border:1px solid var(--border);
+            border-radius:4px; padding:2px 6px; font-size:0.78rem; color:#c7254e;
+        }
+        .msg-body ul, .msg-body ol { padding-left:22px; margin-bottom:10px; }
+        .msg-body li { margin-bottom:4px; }
+        .msg-body h1,.msg-body h2,.msg-body h3 {
+            font-family:'IBM Plex Sans',sans-serif;
+            margin:16px 0 8px; color:var(--ink);
+        }
+        .msg-body strong { font-weight:600; }
+        .msg-body em { font-style:italic; }
+
+        /* Empty state */
+        .empty-state {
+            flex:1; display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            gap:16px; color:var(--ink3); padding:40px;
+            text-align:center; animation:fadeUp 0.4s ease both;
+        }
+        .empty-icon { font-size:2.5rem; opacity:0.5; }
+        .empty-title { font-family:'IBM Plex Sans',sans-serif; font-size:1.1rem; font-weight:600; color:var(--ink2); }
+        .empty-sub { font-size:0.72rem; color:var(--ink3); max-width:320px; line-height:1.7; }
+        .prompt-chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:8px; }
         .chip {
-            background: var(--surface); border: 1px solid var(--border);
-            padding: 6px 12px; border-radius: 6px; font-size: 0.68rem;
-            cursor: pointer; color: var(--ink2); transition: all 0.15s;
+            padding:6px 14px; border-radius:100px;
+            background:var(--bg2); border:1px solid var(--border);
+            font-size:0.7rem; color:var(--ink2); cursor:pointer;
+            transition:all 0.15s;
         }
-        .chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
+        .chip:hover { border-color:var(--accent-b); background:var(--accent-l); color:var(--accent); }
 
-        .message { display: flex; gap: 10px; animation: fadeUp 0.2s ease both; }
-        .message.user { flex-direction: row-reverse; }
-        .avatar {
-            width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; margin-top: 2px;
+        /* Typing indicator */
+        .typing-indicator {
+            display:none; padding:14px 32px;
+            font-size:0.72rem; color:var(--ink3);
+            align-items:center; gap:8px;
         }
-        .message.user .avatar      { background: var(--accent-l); border: 1px solid var(--accent-b); }
-        .message.assistant .avatar { background: var(--surface2); border: 1px solid var(--border); }
+        .typing-indicator.visible { display:flex; }
+        .t-dot {
+            width:5px; height:5px; border-radius:50%;
+            background:var(--ink3); animation:pulse 1.2s infinite;
+        }
+        .t-dot:nth-child(2) { animation-delay:0.2s; }
+        .t-dot:nth-child(3) { animation-delay:0.4s; }
 
-        .bubble-wrap { max-width: 78%; min-width: 0; }
-        .message.user .bubble-wrap { display: flex; flex-direction: column; align-items: flex-end; }
-
-        .bubble {
-            border-radius: 8px; padding: 10px 14px;
-            font-size: 0.82rem; line-height: 1.75;
-            word-break: break-word; overflow-wrap: anywhere; min-width: 0;
+        /* INPUT BAR */
+        .input-bar {
+            flex-shrink:0; padding:14px 20px 16px;
+            border-top:1px solid var(--border); background:var(--surface);
         }
-        .message.user .bubble {
-            background: var(--accent); color: #fff;
-            border-top-right-radius: 2px;
-            box-shadow: 0 2px 8px rgba(37,99,235,0.18);
-            font-family: 'IBM Plex Mono', monospace;
+        .input-wrap {
+            display:flex; align-items:flex-end; gap:10px;
+            background:var(--bg); border:1.5px solid var(--border);
+            border-radius:10px; padding:10px 12px;
+            transition:border-color 0.15s, box-shadow 0.15s;
         }
-        .message.assistant .bubble {
-            background: var(--surface); color: var(--ink);
-            border: 1px solid var(--border); border-top-left-radius: 2px;
-            font-family: 'IBM Plex Sans', sans-serif;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        .input-wrap:focus-within {
+            border-color:var(--accent); box-shadow:var(--glow);
+            background:var(--surface);
         }
-
-        /* ── KEY FIX: force ALL text in assistant bubble to sans-serif ── */
-        .message.assistant .bubble p,
-        .message.assistant .bubble li,
-        .message.assistant .bubble h3,
-        .message.assistant .bubble strong,
-        .message.assistant .bubble em,
-        .message.assistant .bubble span {
-            font-family: 'IBM Plex Sans', sans-serif;
+        .input-prompt { font-size:0.75rem; color:var(--accent); padding-bottom:2px; flex-shrink:0; }
+        #msgInput {
+            flex:1; background:transparent; border:none; outline:none;
+            font-family:'IBM Plex Mono', monospace; font-size:0.84rem;
+            color:var(--ink); resize:none; min-height:24px; max-height:160px;
+            line-height:1.6; overflow-y:auto;
         }
-
-        .meta { font-size: 0.58rem; color: var(--ink3); margin-top: 4px; padding: 0 2px; }
-
-        /* ── Code block ── */
-        .code-wrapper {
-            margin: 10px 0; border-radius: 8px;
-            overflow: hidden; border: 1px solid var(--c-border);
+        #msgInput::placeholder { color:var(--ink3); }
+        .input-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+        .btn-clear {
+            font-size:0.65rem; color:var(--ink3); background:none;
+            border:1px solid var(--border); border-radius:5px;
+            padding:5px 10px; cursor:pointer; font-family:inherit;
+            transition:all 0.15s;
         }
-        .code-header {
-            display: flex; align-items: center; justify-content: space-between;
-            background: var(--c-bg2); padding: 6px 14px;
-            font-size: 0.68rem; color: var(--c-sub);
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        .copy-btn {
-            background: var(--c-border); border: none; color: var(--c-text);
-            padding: 2px 9px; border-radius: 4px; font-size: 0.63rem;
-            cursor: pointer; font-family: 'IBM Plex Mono', monospace;
-            transition: background 0.15s;
-        }
-        .copy-btn:hover { background: #45475a; }
-
-        /* code only uses monospace — everything else is sans */
-        .bubble pre {
-            background: var(--c-bg); padding: 14px 16px; margin: 0;
-            overflow-x: auto; width: 100%;
-            font-family: 'IBM Plex Mono', monospace !important;
-            font-size: 0.79rem; line-height: 1.75; color: var(--c-text);
-            white-space: pre; word-break: normal; overflow-wrap: normal; tab-size: 4;
-        }
-        .bubble pre code {
-            font-family: 'IBM Plex Mono', monospace !important;
-            white-space: pre; word-break: normal;
-        }
-        .bubble code:not(pre code) {
-            background: var(--accent-l); border: 1px solid var(--accent-b);
-            padding: 1px 5px; border-radius: 4px;
-            font-family: 'IBM Plex Mono', monospace !important;
-            font-size: 0.82em; color: var(--accent); white-space: nowrap;
-        }
-        .bubble p  { margin-bottom: 8px; font-family: 'IBM Plex Sans', sans-serif; }
-        .bubble p:last-child { margin-bottom: 0; }
-        .bubble strong { font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; }
-        .bubble h3 { font-size: 0.88rem; font-weight: 600; margin: 10px 0 5px; font-family: 'IBM Plex Sans', sans-serif; }
-        .bubble ol, .bubble ul { padding-left: 20px; margin: 6px 0; }
-        .bubble li { margin-bottom: 4px; line-height: 1.6; font-family: 'IBM Plex Sans', sans-serif; }
-        .bubble hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
-
-        .typing {
-            display: inline-flex; align-items: center; gap: 4px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 8px; border-top-left-radius: 2px;
-            padding: 11px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-        }
-        .typing-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink3); animation: bounce 1.2s infinite; }
-        .typing-dot:nth-child(2){animation-delay:.2s}
-        .typing-dot:nth-child(3){animation-delay:.4s}
-
-        .input-area { padding: 12px 20px 18px; border-top: 1px solid var(--border); }
-        .input-wrapper {
-            display: flex; align-items: flex-end; gap: 8px;
-            background: var(--surface); border: 1.5px solid var(--border);
-            border-radius: 8px; padding: 8px 8px 8px 14px;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-        }
-        .input-wrapper:focus-within { border-color: var(--accent); box-shadow: var(--glow); }
-        .input-ps { font-size: 0.8rem; color: var(--accent); user-select: none; flex-shrink: 0; margin-bottom: 2px; }
-        #userInput {
-            flex: 1; background: transparent; border: none; outline: none;
-            color: var(--ink); font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.82rem; resize: none;
-            min-height: 22px; max-height: 130px; line-height: 1.55;
-        }
-        #userInput::placeholder { color: var(--ink3); }
+        .btn-clear:hover { color:var(--danger); border-color:var(--danger); background:rgba(220,38,38,0.05); }
         .btn-send {
-            width: 30px; height: 30px; border-radius: 6px;
-            background: var(--accent); border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; color: #fff; font-size: 13px;
-            transition: all 0.15s; box-shadow: 0 2px 8px rgba(37,99,235,0.22);
+            width:34px; height:34px; border-radius:7px;
+            background:var(--accent); color:#fff; border:none;
+            cursor:pointer; font-size:15px; display:flex;
+            align-items:center; justify-content:center;
+            transition:all 0.15s; box-shadow:0 2px 8px rgba(37,99,235,0.22);
         }
-        .btn-send:hover    { opacity: 0.88; transform: scale(1.05); }
-        .btn-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-        .input-hint { font-size: 0.58rem; color: var(--ink3); text-align: center; margin-top: 7px; }
+        .btn-send:hover { opacity:0.88; transform:translateY(-1px); }
+        .btn-send:active { transform:translateY(0); }
+        .btn-send:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+        .input-hint { font-size:0.58rem; color:var(--ink3); margin-top:6px; padding-left:2px; }
+
+        /* Toast */
+        .toast {
+            position:fixed; bottom:24px; right:24px; z-index:999;
+            background:var(--danger); color:#fff; padding:10px 16px;
+            border-radius:8px; font-size:0.72rem; display:none;
+            animation:fadeUp 0.2s ease;
+            box-shadow:0 4px 16px rgba(0,0,0,0.15);
+        }
+        .toast.show { display:block; }
+
+        /* Scrollbar */
+        .messages::-webkit-scrollbar { width:5px; }
+        .messages::-webkit-scrollbar-track { background:transparent; }
+        .messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+
+        @media(max-width:680px) {
+            .sidebar { display:none; }
+            .msg-group { padding:12px 16px; }
+            .input-bar { padding:10px 12px 12px; }
+            .topbar-mid { display:none; }
+        }
     </style>
 </head>
 <body>
-<div class="layout">
 
-    <!-- ── Sidebar ── -->
+<!-- TOPBAR -->
+<div class="topbar">
+    <a href="/welcome" class="brand">
+        <div class="brand-mark">🤖</div>
+        <span class="brand-name">ai-coder</span>
+    </a>
+    <div class="topbar-mid"></div>
+    <div class="topbar-right">
+        <span class="status-dot"></span>
+        <span class="status-txt">ready</span>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" class="btn-logout">./logout →</button>
+        </form>
+    </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+
+    <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="sidebar-head">
-            <div class="brand-mark">🤖</div>
-            <span class="brand-name">ai-coder</span>
+            <span class="sidebar-title">sessions</span>
+            <button class="btn-new-chat" onclick="clearChat()">+ new</button>
         </div>
-        <div class="sidebar-section">Today's chats</div>
-        <div class="history-list" id="historyList">
-            <div class="history-empty" id="historyEmpty">No questions yet today.</div>
+        <div class="sidebar-body">
+            <div class="session-item active">Current Session</div>
         </div>
-        <div class="sidebar-footer">
-            <div class="sf-user">
-                <div class="sf-avatar">👤</div>
-                <span th:text="${username}">user</span>
+        <div class="sidebar-foot">
+            <div class="user-row">
+                <div class="user-avatar" id="userAvatar" th:text="${username != null ? username.substring(0,1).toUpperCase() : '?'}">?</div>
+                <span class="user-name" th:text="${username}">user</span>
             </div>
-            <form th:action="@{/logout}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="submit" class="sf-btn">↩ logout</button>
-            </form>
         </div>
     </aside>
 
-    <!-- ── Main ── -->
-    <div class="main">
-        <header>
-            <div class="h-status">
-                <span class="status-dot"></span>
-                <span class="h-title">ready</span>
-            </div>
-            <button class="h-btn clear" onclick="clearChat()">⌫ clear chat</button>
-        </header>
+    <!-- MAIN CHAT -->
+    <main class="main">
 
-        <div class="chat-area" id="chatArea">
-            <div class="welcome" id="welcome" th:if="${messages == null or messages.isEmpty()}">
-                <div class="welcome-icon">💻</div>
-                <h2 th:text="'Hello, ' + ${username} + '!'">Hello!</h2>
-                <p>Ask anything — algorithms, debugging, architecture, Spring Boot, and more.</p>
-                <div class="chips">
-                    <span class="chip" onclick="sendSuggestion(this)">REST API in Spring Boot</span>
-                    <span class="chip" onclick="sendSuggestion(this)">async/await in JavaScript</span>
-                    <span class="chip" onclick="sendSuggestion(this)">Binary search in Java</span>
-                    <span class="chip" onclick="sendSuggestion(this)">SQL query optimisation</span>
+        <!-- MESSAGES + EMPTY STATE -->
+        <div class="messages" id="messages">
+
+            <!-- Empty state: shown only when there is no history -->
+            <div id="emptyState" class="empty-state" th:unless="${not #lists.isEmpty(messages)}">
+                <div class="empty-icon">🤖</div>
+                <div class="empty-title">Ready to help you code</div>
+                <p class="empty-sub">Ask me to write, debug, or explain any code. I'll respond with clear examples.</p>
+                <div class="prompt-chips">
+                    <div class="chip" onclick="useChip(this)">Write a Python REST API</div>
+                    <div class="chip" onclick="useChip(this)">Explain async/await in JS</div>
+                    <div class="chip" onclick="useChip(this)">Debug this SQL query</div>
+                    <div class="chip" onclick="useChip(this)">Explain Big-O notation</div>
                 </div>
             </div>
+
+            <!-- Server-rendered history (th:text safely HTML-escapes content;
+                 the DOMContentLoaded JS handler then re-renders assistant
+                 messages as markdown via marked.js) -->
             <th:block th:each="msg : ${messages}">
-                <div th:class="'message ' + ${msg.role}">
-                    <div class="avatar" th:text="${msg.role == 'user' ? '👤' : '🤖'}"></div>
-                    <div class="bubble-wrap">
-                        <div class="bubble">
-                            <span class="raw-content" style="display:none" th:text="${msg.content}"></span>
-                        </div>
-                        <div class="meta" th:text="${msg.timestamp}"></div>
+                <div class="msg-group" th:attr="data-role=${msg.role}">
+                    <div class="msg-meta">
+                        <span th:class="'msg-role ' + ${msg.role}" th:text="${msg.role}">role</span>
+                        <span class="msg-time" th:text="${msg.timestamp}">00:00</span>
+                    </div>
+                    <div th:class="'msg-body ' + ${msg.role} + '-body'"
+                         th:text="${msg.content}">
                     </div>
                 </div>
             </th:block>
         </div>
 
-        <div class="input-area">
-            <div class="input-wrapper">
-                <span class="input-ps">❯</span>
-                <textarea id="userInput" rows="1"
-                    placeholder="ask ai-coder anything…"
-                    onkeydown="handleKey(event)"
-                    oninput="autoResize(this)"></textarea>
-                <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
-            </div>
-            <div class="input-hint">enter to send &nbsp;·&nbsp; shift+enter for new line</div>
+        <!-- TYPING INDICATOR -->
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="t-dot"></div>
+            <div class="t-dot"></div>
+            <div class="t-dot"></div>
+            <span style="margin-left:4px;font-size:0.65rem;">AI is thinking…</span>
         </div>
-    </div>
+
+        <!-- INPUT BAR -->
+        <div class="input-bar">
+            <div class="input-wrap">
+                <span class="input-prompt">❯</span>
+                <textarea id="msgInput" placeholder="Ask me to write, debug, or explain code…" rows="1"></textarea>
+                <div class="input-actions">
+                    <button class="btn-clear" onclick="clearChat()" title="Clear history">clear</button>
+                    <button class="btn-send" id="sendBtn" onclick="sendMessage()" title="Send (Enter)">↑</button>
+                </div>
+            </div>
+            <div class="input-hint">Enter to send · Shift+Enter for new line · Your history is saved for 24 h</div>
+        </div>
+
+    </main>
 </div>
 
+<!-- ERROR TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
-    const HISTORY_KEY = 'aicoder_history_' + new Date().toDateString();
-    let questionHistory = JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
+    /* ── Helpers ──────────────────────────────────────────────────────────── */
 
-    function saveQuestion(q) {
-        if (!q || q.length < 3) return;
-        const short = q.length > 40 ? q.substring(0, 40) + '…' : q;
-        if (!questionHistory.includes(short)) {
-            questionHistory.unshift(short);
-            if (questionHistory.length > 20) questionHistory.pop();
-            sessionStorage.setItem(HISTORY_KEY, JSON.stringify(questionHistory));
+    /**
+     * Read a cookie value by name.
+     * Used to retrieve the XSRF-TOKEN cookie set by Spring's CookieCsrfTokenRepository.
+     */
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+    }
+
+    /**
+     * All state-changing requests (POST) MUST include the X-XSRF-TOKEN header.
+     * Spring Security's SpaCsrfTokenRequestHandler reads this header for JSON requests.
+     */
+    function csrfHeaders() {
+        return { 'X-XSRF-TOKEN': getCookie('XSRF-TOKEN') };
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 4000);
+    }
+
+    function scrollToBottom() {
+        const m = document.getElementById('messages');
+        m.scrollTop = m.scrollHeight;
+    }
+
+    function setLoading(on) {
+        document.getElementById('sendBtn').disabled = on;
+        document.getElementById('typingIndicator').classList.toggle('visible', on);
+        if (on) scrollToBottom();
+    }
+
+    /* ── Markdown rendering ───────────────────────────────────────────────── */
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        highlight: function(code, lang) {
+            if (lang && hljs.getLanguage(lang)) {
+                return hljs.highlight(code, { language: lang }).value;
+            }
+            return hljs.highlightAuto(code).value;
         }
-        renderHistory();
-    }
-
-    function renderHistory() {
-        const list = document.getElementById('historyList');
-        const empty = document.getElementById('historyEmpty');
-        if (questionHistory.length === 0) {
-            if (empty) empty.style.display = 'block';
-            return;
-        }
-        if (empty) empty.style.display = 'none';
-        list.innerHTML = questionHistory.map(q => `
-            <div class="history-item" onclick="reuseQuestion(this)" title="${q}">
-                <span class="hi-dot"></span>${q}
-            </div>`).join('');
-    }
-
-    function reuseQuestion(el) {
-        const q = el.getAttribute('title');
-        document.getElementById('userInput').value = q;
-        document.getElementById('userInput').focus();
-    }
-
-    function renderMarkdown(raw) {
-        let t = raw
-            .replace(/&/g,'&amp;')
-            .replace(/</g,'&lt;')
-            .replace(/>/g,'&gt;');
-
-        /* fenced code blocks */
-        t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-            const label = lang || 'code';
-            const lines = code.trimEnd();
-            return `<div class="code-wrapper">
-                <div class="code-header">
-                    <span>${label}</span>
-                    <button class="copy-btn" onclick="copyCode(this)">copy</button>
-                </div>
-                <pre><code>${lines}</code></pre>
-            </div>`;
-        });
-
-        t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
-        t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        t = t.replace(/\*(.+?)\*/g,     '<em>$1</em>');
-        t = t.replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>');
-        t = t.replace(/^[-–—]{3,}$/gm, '<hr>');
-        t = t.replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
-        t = t.replace(/^[-•*]\s+(.+)$/gm,   '<li>$1</li>');
-
-        t = t.split(/\n{2,}/).map(p => {
-            p = p.trim();
-            if (!p) return '';
-            if (/^<(div|pre|h3|hr|li)/.test(p)) return p;
-            return `<p>${p.replace(/\n/g,'<br>')}</p>`;
-        }).join('');
-
-        return t;
-    }
-
-    function copyCode(btn) {
-        const code = btn.closest('.code-wrapper').querySelector('code').innerText;
-        navigator.clipboard.writeText(code).then(() => {
-            btn.textContent = 'copied!';
-            setTimeout(() => btn.textContent = 'copy', 2000);
-        });
-    }
-
-    document.querySelectorAll('.raw-content').forEach(s => {
-        s.closest('.bubble').innerHTML = renderMarkdown(s.textContent);
     });
-    renderHistory();
 
-    function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function getCsrf() {
-        const m = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
-        return m ? decodeURIComponent(m.pop()) : '';
+    function renderMarkdown(text) {
+        const html = marked.parse(text || '');
+        // After rendering, re-apply highlight.js to all code blocks
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+        wrapper.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+        return wrapper.innerHTML;
     }
 
-    function appendMessage(role, content, time) {
-        document.getElementById('welcome')?.remove();
-        const ca = document.getElementById('chatArea');
-        const d  = document.createElement('div');
-        d.className = `message ${role}`;
-        d.innerHTML = `
-            <div class="avatar">${role==='user'?'👤':'🤖'}</div>
-            <div class="bubble-wrap">
-                <div class="bubble">${role==='assistant'?renderMarkdown(content):`<p>${esc(content)}</p>`}</div>
-                <div class="meta">${time}</div>
-            </div>`;
-        ca.appendChild(d);
-        ca.scrollTop = ca.scrollHeight;
+    /* ── Message DOM builder ──────────────────────────────────────────────── */
+    function appendMessage(role, content, time, renderMd) {
+        const empty = document.getElementById('emptyState');
+        if (empty) empty.remove();
+
+        const group = document.createElement('div');
+        group.className = 'msg-group';
+        group.dataset.role = role;
+
+        const meta = document.createElement('div');
+        meta.className = 'msg-meta';
+        meta.innerHTML = `<span class="msg-role ${role}">${role}</span><span class="msg-time">${time}</span>`;
+
+        const body = document.createElement('div');
+        body.className = `msg-body ${role}-body`;
+        if (renderMd && role === 'assistant') {
+            body.innerHTML = renderMarkdown(content);
+        } else {
+            body.textContent = content;
+        }
+
+        group.appendChild(meta);
+        group.appendChild(body);
+        document.getElementById('messages').appendChild(group);
+        scrollToBottom();
     }
 
-    function showTyping() {
-        const ca = document.getElementById('chatArea');
-        const d  = document.createElement('div');
-        d.className = 'message assistant'; d.id = 'typing';
-        d.innerHTML = `<div class="avatar">🤖</div><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-        ca.appendChild(d); ca.scrollTop = ca.scrollHeight;
-    }
-    function removeTyping(){ document.getElementById('typing')?.remove(); }
+    /* ── Render server-side history with markdown ─────────────────────────── */
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.msg-group[data-role="assistant"] .msg-body').forEach(el => {
+            el.innerHTML = renderMarkdown(el.textContent);
+        });
+        scrollToBottom();
+    });
 
+    /* ── Chip prompts ─────────────────────────────────────────────────────── */
+    function useChip(chip) {
+        document.getElementById('msgInput').value = chip.textContent;
+        document.getElementById('msgInput').focus();
+    }
+
+    /* ── Auto-resize textarea ─────────────────────────────────────────────── */
+    const input = document.getElementById('msgInput');
+    input.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+    });
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    /* ── Send message ─────────────────────────────────────────────────────── */
     async function sendMessage() {
-        const inp = document.getElementById('userInput');
-        const btn = document.getElementById('sendBtn');
-        const msg = inp.value.trim();
-        if (!msg || btn.disabled) return;
-        btn.disabled = true; inp.value = ''; inp.style.height = 'auto';
-        const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-        saveQuestion(msg);
-        appendMessage('user', msg, time);
-        showTyping();
+        const txt = input.value.trim();
+        if (!txt) return;
+
+        const now = new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+        appendMessage('user', txt, now, false);
+
+        input.value = '';
+        input.style.height = 'auto';
+        setLoading(true);
+
         try {
-            const res = await fetch('/chat', {
+            const res = await fetch('/chat-page', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': getCsrf() },
-                body: JSON.stringify({ message: msg })
+                headers: {
+                    'Content-Type': 'application/json',
+                    /* ← CSRF header required by Spring Security for JSON POSTs via ngrok */
+                    ...csrfHeaders()
+                },
+                body: JSON.stringify({ message: txt })
             });
+
+            if (res.status === 403) {
+                showToast('Session expired — please refresh the page and log in again.');
+                return;
+            }
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+                showToast(err.error || 'Request failed');
+                return;
+            }
+
             const data = await res.json();
-            removeTyping();
-            appendMessage('assistant', data.error ? `⚠️ ${data.error}` : data.response, data.time || time);
-        } catch {
-            removeTyping();
-            appendMessage('assistant', '⚠️ Could not reach the AI. Please try again.', time);
+            appendMessage('assistant', data.response, data.time || now, true);
+
+        } catch (err) {
+            showToast('Network error: ' + err.message);
         } finally {
-            btn.disabled = false; inp.focus();
+            setLoading(false);
         }
     }
 
-    function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
-    function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,130)+'px'; }
-    function sendSuggestion(el){ document.getElementById('userInput').value=el.textContent.trim(); sendMessage(); }
-
+    /* ── Clear chat history ───────────────────────────────────────────────── */
     async function clearChat() {
-        await fetch('/clear', { method: 'POST', headers: { 'X-XSRF-TOKEN': getCsrf() } });
-        document.getElementById('chatArea').innerHTML = `
-            <div class="welcome" id="welcome">
-                <div class="welcome-icon">💻</div>
-                <h2>What can I code for you?</h2>
-                <p>Ask anything — algorithms, debugging, architecture, Spring Boot, and more.</p>
-                <div class="chips">
-                    <span class="chip" onclick="sendSuggestion(this)">REST API in Spring Boot</span>
-                    <span class="chip" onclick="sendSuggestion(this)">async/await in JavaScript</span>
-                    <span class="chip" onclick="sendSuggestion(this)">Binary search in Java</span>
-                    <span class="chip" onclick="sendSuggestion(this)">SQL query optimisation</span>
-                </div>
-            </div>`;
-    }
+        try {
+            const res = await fetch('/clear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    /* ← CSRF header required by Spring Security for JSON POSTs via ngrok */
+                    ...csrfHeaders()
+                }
+            });
 
-    document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
-    document.getElementById('userInput').focus();
+            if (!res.ok) {
+                showToast('Failed to clear history');
+                return;
+            }
+
+            // Remove all chat messages and show empty state again
+            const msgs = document.getElementById('messages');
+            msgs.innerHTML = `
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">🤖</div>
+                    <div class="empty-title">Ready to help you code</div>
+                    <p class="empty-sub">Ask me to write, debug, or explain any code. I'll respond with clear examples.</p>
+                    <div class="prompt-chips">
+                        <div class="chip" onclick="useChip(this)">Write a Python REST API</div>
+                        <div class="chip" onclick="useChip(this)">Explain async/await in JS</div>
+                        <div class="chip" onclick="useChip(this)">Debug this SQL query</div>
+                        <div class="chip" onclick="useChip(this)">Explain Big-O notation</div>
+                    </div>
+                </div>`;
+        } catch (err) {
+            showToast('Network error: ' + err.message);
+        }
+    }
 </script>
+
 </body>
 </html>

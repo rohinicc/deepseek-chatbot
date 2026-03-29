@@ -1,65 +1,72 @@
 package com.example.chatbot.config;
 
-import com.example.chatbot.service.UserDetailsServiceImpl;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
+import org.springframework.security.web.csrf.*;
+import java.util.function.Supplier;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService;
+    /**
+     * Canonical Spring Security 6 pattern for apps that use BOTH:
+     *   - Thymeleaf server-rendered forms  (need ${_csrf.token} in model)
+     *   - JavaScript fetch() / XHR         (need X-XSRF-TOKEN header support)
+     *
+     * XorCsrfTokenRequestAttributeHandler  → writes token into request attributes
+     *   so Thymeleaf ${_csrf.token} and ${_csrf.parameterName} resolve correctly.
+     *
+     * CsrfTokenRequestAttributeHandler     → resolves token value from either
+     *   the form parameter (_csrf) OR the X-XSRF-TOKEN header, enabling JSON POSTs.
+     */
+    static final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
 
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
+        private final CsrfTokenRequestHandler plain =
+                new CsrfTokenRequestAttributeHandler();
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        private final CsrfTokenRequestHandler xor =
+                new XorCsrfTokenRequestAttributeHandler();
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
-    }
+        @Override
+        public void handle(HttpServletRequest request,
+                           HttpServletResponse response,
+                           Supplier<CsrfToken> csrfToken) {
+            /*
+             * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH
+             * protection of the CsrfToken when it is rendered in the response body.
+             * This populates the _csrf request attribute so Thymeleaf can read it.
+             */
+            this.xor.handle(request, response, csrfToken);
+            /*
+             * Force eager loading of the token so the XSRF-TOKEN cookie is
+             * written on the very first response (important for ngrok flows where
+             * the first page load must set the cookie before JS reads it).
+             */
+            csrfToken.get();
+        }
 
-    @Bean
-    public OncePerRequestFilter csrfCookieFilter() {
-        return new OncePerRequestFilter() {
-            @Override
-            protected void doFilterInternal(HttpServletRequest request,
-                                            HttpServletResponse response,
-                                            FilterChain filterChain)
-                    throws ServletException, IOException {
-                CsrfToken csrfToken =
-                        (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-                if (csrfToken != null) {
-                    csrfToken.getToken();
-                }
-                filterChain.doFilter(request, response);
+        @Override
+        public String resolveCsrfTokenValue(HttpServletRequest request,
+                                            CsrfToken csrfToken) {
+            /*
+             * If the request has a X-XSRF-TOKEN header (from JavaScript fetch),
+             * use the plain handler which reads it unencoded from that header.
+             * Otherwise fall back to the Xor handler (form parameter, already encoded).
+             */
+            String headerValue = request.getHeader("X-XSRF-TOKEN");
+            if (headerValue != null && !headerValue.isBlank()) {
+                return this.plain.resolveCsrfTokenValue(request, csrfToken);
             }
-        };
+            return this.xor.resolveCsrfTokenValue(request, csrfToken);
+        }
     }
 
     @Bean
@@ -67,21 +74,14 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
             )
-            .addFilterAfter(csrfCookieFilter(), BasicAuthenticationFilter.class)
-            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-                // ── All public pages — explicitly listed ──────────────────
                 .requestMatchers(
-                    "/",
-                    "/welcome",
-                    "/login",
-                    "/signup",
-                    "/css/**",
-                    "/js/**",
-                    "/images/**",
-                    "/error"          // ← ADDED: prevents /error redirect loop
+                    "/", "/welcome", "/login", "/signup",
+                    "/favicon.ico", "/error",
+                    "/css/**", "/js/**", "/images/**", "/webjars/**",
+                    "/terms", "/privacy"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -90,23 +90,21 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login")
                 .defaultSuccessUrl("/chat-page", true)
                 .failureUrl("/login?error")
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .permitAll()          // ← ensures login page + processing are always accessible
-            )
-            .rememberMe(rem -> rem
-                .key("ai-coder-remember-me-key")
-                .tokenValiditySeconds(7 * 24 * 3600)
+                .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
-                .invalidateHttpSession(true)      // ← ADDED: fully clears session on logout
-                .clearAuthentication(true)         // ← ADDED: clears auth on logout
-                .deleteCookies("JSESSIONID", "XSRF-TOKEN", "remember-me")  // ← clears all cookies
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "XSRF-TOKEN")
                 .permitAll()
             );
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

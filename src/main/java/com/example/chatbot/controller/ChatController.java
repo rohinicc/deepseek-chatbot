@@ -12,14 +12,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Chat controller.
- * History is stored in Redis (not HttpSession) so it survives server restarts
- * and is isolated per logged-in user.
- */
 @Controller
 public class ChatController {
 
@@ -45,22 +41,44 @@ public class ChatController {
         return "welcome";
     }
 
-    /** Loads chat page — pulls history from Redis for this user */
     @GetMapping("/chat-page")
     public String index(Model model,
                         @AuthenticationPrincipal UserDetails principal) {
+
+        // ── FIX: guard against null principal (unauthenticated access) ────────
+        // If somehow this endpoint is hit without a valid session,
+        // redirect to login instead of crashing with NullPointerException.
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
         String username = principal.getUsername();
-        model.addAttribute("messages", historyService.getHistory(username));
+
+        // ── FIX: always guarantee messages is a non-null List ─────────────────
+        // historyService.getHistory() can return null if Redis is empty or
+        // if there is a deserialization issue. A null list causes
+        // ${#lists.isEmpty(messages)} in Thymeleaf to throw an exception,
+        // which produces a blank white page with no error shown.
+        List<ChatMessage> messages = historyService.getHistory(username);
+        if (messages == null) {
+            messages = new ArrayList<>();
+        }
+
+        model.addAttribute("messages", messages);
         model.addAttribute("username", username);
         return "index";
     }
 
-    /** Receives a message, calls AI, stores both turns in Redis */
-    @PostMapping("/chat")
+    @PostMapping("/chat-page")
     @ResponseBody
     public ResponseEntity<Map<String, String>> chat(
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal UserDetails principal) {
+
+        if (principal == null) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("error", "Not authenticated"));
+        }
 
         String userMessage = body.get("message");
         if (userMessage == null || userMessage.isBlank()) {
@@ -71,24 +89,27 @@ public class ChatController {
         String username = principal.getUsername();
         String now      = LocalTime.now().format(TIME_FMT);
 
-        // Get current history to send as context, then persist user message
         List<ChatMessage> history = historyService.getHistory(username);
+        if (history == null) history = new ArrayList<>();
+
         historyService.addMessage(username, new ChatMessage("user", userMessage, now));
 
-        // Call AI with full history as context
         String reply = chatService.chat(history, userMessage);
-
-        // Persist AI reply
         historyService.addMessage(username, new ChatMessage("assistant", reply, now));
 
         return ResponseEntity.ok(Map.of("response", reply, "time", now));
     }
 
-    /** Clears this user's chat history from Redis */
     @PostMapping("/clear")
     @ResponseBody
     public ResponseEntity<Map<String, String>> clear(
             @AuthenticationPrincipal UserDetails principal) {
+
+        if (principal == null) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("error", "Not authenticated"));
+        }
+
         historyService.clearHistory(principal.getUsername());
         return ResponseEntity.ok(Map.of("status", "cleared"));
     }
