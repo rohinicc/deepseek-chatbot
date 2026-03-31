@@ -1,0 +1,17 @@
+@echo off
+set IMAGE_NAME=rohinicc/ai-chatbot
+set TAG=latest
+
+echo ==========================================
+echo 🐳 Preparing to Build and Push Docker Image
+echo ==========================================
+
+echo 🔨 [1/2] Building Docker image: %IMAGE_NAME%:%TAG%...
+docker build -t %IMAGE_NAME%:%TAG% .
+
+echo ☁️ [2/2] Pushing Docker image to Docker Hub...
+docker push %IMAGE_NAME%:%TAG%
+
+echo ✅ Success! Docker image successfully pushed to %IMAGE_NAME%:%TAG%.
+echo You can now pull the image anywhere using: docker pull %IMAGE_NAME%:%TAG%
+pause
