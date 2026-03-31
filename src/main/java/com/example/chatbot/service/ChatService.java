@@ -1,6 +1,7 @@
 package com.example.chatbot.service;
 
 import com.example.chatbot.model.ChatMessage;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -31,6 +32,7 @@ public class ChatService {
                 .build();
     }
 
+    @Cacheable(value = "chatResponses", key = "#userMessage")
     public String chat(List<ChatMessage> history, String userMessage) {
         List<Message> messages = new ArrayList<>();
 

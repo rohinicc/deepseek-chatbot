@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-chatbot-deployment
+  labels:
+    app: ai-chatbot
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-chatbot
+  template:
+    metadata:
+      labels:
+        app: ai-chatbot
+    spec:
+      containers:
+      - name: ai-chatbot
+        image: rohinicc/ai-chatbot:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/ai_coder?createDatabaseIfNotExist=true&useSSL=false"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ai-chatbot-secrets
+              key: mysql-root-password
+        - name: SPRING_DATA_REDIS_HOST
+          value: "redis-service"
+        - name: SPRING_DATA_REDIS_PORT
+          value: "6379"
+        - name: OLLAMA_BASE_URL
+          value: "http://host.minikube.internal:11434"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
