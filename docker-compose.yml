@@ -70,6 +70,7 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
     networks:
       - ai-coder-network
 
@@ -82,6 +83,9 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus
     networks:
@@ -91,6 +95,8 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  prometheus-data:
+  grafana-data:
 
 # ── Network ────────────────────────────────────────────────
 networks:
